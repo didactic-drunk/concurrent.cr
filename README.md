@@ -1,11 +1,17 @@
 # concurrent.cr
+[![Build Status](https://travis-ci.org/didactic-drunk/concurrent.cr.svg?branch=master)](https://travis-ci.org/didactic-drunk/concurrent.cr)
 
-Modern concurrency tools for Crystal.  Inspired by 
-Erlang, Clojure, Scala, Haskell, F#, C#, Java, and classic concurrency patterns which inspired 
+<strike>Modern</strike> <strike>Adequate</strike> <strike>Any</strike> 
+**New opportunities for** concurrency tools in Crystal.  
+Large <strike>empty</strike> spacious <strike>lots</strike> directories available to build your dream <strike>home</strike> algorithm!  
+Space is filling up at (24k code bytes / 2 months) 0.004 bytes per second.  Register your PR today!  
+<strike>©️ Real estate marketing association</strike>
+
+Inspired by Erlang, Clojure, Scala, Haskell, F#, C#, Java, and classic concurrency patterns which inspired 
 [Ruby](https://github.com/ruby-concurrency/concurrent-ruby), 
 which inspired [this library](https://github.com/didactic-drunk/concurrent.cr).
 
-Right now there's only a atomic count down latch.  Contributions welcome.
+Right now only an atomic count down latch is available.  Contributions welcome.
 
 ## Installation
 
