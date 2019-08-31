@@ -2,10 +2,14 @@ language: crystal
 os:
 - linux
 
-
 script:
   - crystal spec
   - crystal tool format --check
   - shards build
   - crystal docs
 
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: docs

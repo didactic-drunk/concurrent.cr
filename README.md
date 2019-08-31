@@ -1,5 +1,6 @@
 # concurrent.cr
 [![Build Status](https://travis-ci.org/didactic-drunk/concurrent.cr.svg?branch=master)](https://travis-ci.org/didactic-drunk/concurrent.cr)
+[![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://didactic-drunk.github.io/concurrent.cr/)
 
 <strike>Modern</strike> <strike>Adequate</strike> <strike>Any</strike> 
 **New opportunities for** concurrency tools in Crystal.  
