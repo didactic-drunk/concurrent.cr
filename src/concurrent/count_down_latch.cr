@@ -19,7 +19,7 @@ class Concurrent::CountDownLatch
   @saved_wait_count = 0 # only set in initialize
 
   # used for release
-  @queue = Channel::Buffered(Nil).new(1)
+  @queue = Channel(Nil).new(1)
 
   def initialize(@saved_wait_count = 0)
     @wait_count = @saved_wait_count
@@ -71,7 +71,7 @@ class Concurrent::CountDownLatch
   # Undefined behavior if called between use of count_down and release.
   def reset
     raise Error::Internal.new "unknown state" if @count.get != 0
-    @queue = Channel::Buffered(Nil | Symbol).new(1)
+    @queue = Channel(Nil).new(1)
     @wait_count = @saved_wait_count
     @count.set @wait_count
     self
