@@ -2,7 +2,9 @@ require "../spec_helper"
 require "../../src/concurrent/semaphore"
 require "atomic"
 
-describe "semaphore" do
+include Concurrent
+
+describe Semaphore do
   it "fails on nonpositive ints" do
     expect_raises(ArgumentError) { Semaphore.new 0 }
     expect_raises(ArgumentError) { Semaphore.new (-2) }

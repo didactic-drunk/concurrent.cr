@@ -1,5 +1,5 @@
 # A semaphore allows execution of at most `n` tasks simultaneously.
-class Semaphore
+class Concurrent::Semaphore
   # Create a semaphore for `n` concurrent accesses.
   # Will raise if `n <= 0`.
   def initialize(n : Int32)

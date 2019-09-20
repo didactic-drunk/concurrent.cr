@@ -13,6 +13,8 @@ Inspired by Erlang, Clojure, Scala, Haskell, F#, C#, Java, and classic concurren
 which inspired [this library](https://github.com/didactic-drunk/concurrent.cr).
 
 Right now only an atomic count down latch is available.  Contributions welcome.
+* [Concurrent::CountDownLatch](https://didactic-drunk.github.io/concurrent.cr/CountDownLatch.html)
+* [Concurrent::Semaphore](https://didactic-drunk.github.io/concurrent.cr/Semaphore.html)
 
 ## Installation
 
