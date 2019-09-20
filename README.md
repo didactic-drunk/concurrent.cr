@@ -4,7 +4,7 @@
 
 <strike>Modern</strike> <strike>Adequate</strike> <strike>Any</strike> 
 **New opportunities for** concurrency tools in Crystal.  
-Large <strike>empty</strike> spacious <strike>lots</strike> directories available to build your dream <strike>home</strike> algorithm!  
+Large <strike>empty lots</strike> spacious directories available to build your dream <strike>home</strike> algorithm!  
 Space is filling up at (24k code bytes / 2 months) 0.004 bytes per second.  Register your PR today!  
 <strike>©️ Real estate marketing association</strike>
 
@@ -12,9 +12,11 @@ Inspired by Erlang, Clojure, Scala, Haskell, F#, C#, Java, and classic concurren
 [Ruby](https://github.com/ruby-concurrency/concurrent-ruby), 
 which inspired [this library](https://github.com/didactic-drunk/concurrent.cr).
 
-Right now only an atomic count down latch is available.  Contributions welcome.
-* [Concurrent::CountDownLatch](https://didactic-drunk.github.io/concurrent.cr/CountDownLatch.html)
-* [Concurrent::Semaphore](https://didactic-drunk.github.io/concurrent.cr/Semaphore.html)
+Available classes:
+* [Concurrent::CountDownLatch](https://didactic-drunk.github.io/concurrent.cr/Concurrent/CountDownLatch.html)
+* [Concurrent::Semaphore](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Semaphore.html)
+
+More algorithms are coming.  Contributions welcome.
 
 ## Installation
 
@@ -30,6 +32,7 @@ Right now only an atomic count down latch is available.  Contributions welcome.
 
 ## Usage
 
+### CountDownLatch
 ```crystal
 require "concurrent/count_down_latch"
 
@@ -44,6 +47,23 @@ end
 
 latch.wait_count = fiber_count
 latch.wait
+```
+
+### Semaphore
+
+```crystal
+require "concurrent/semaphore"
+
+sem = Concurrent::Semaphore.new n
+
+# spawn a lot of fibers
+2000.times do
+  spawn do
+    sem.acquire do
+      ...
+    end
+  end
+end
 ```
 
 ## Development
