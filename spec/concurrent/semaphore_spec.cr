@@ -25,8 +25,4 @@ describe "semaphore" do
       end
     end
   end
-
-
-
 end
-
