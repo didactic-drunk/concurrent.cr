@@ -29,7 +29,7 @@ Right now only an atomic count down latch is available.  Contributions welcome.
 ## Usage
 
 ```crystal
-require "concurrent/countdown_latch"
+require "concurrent/count_down_latch"
 
 fiber_count = 10
 latch = Concurrent::CountDownLatch.new
