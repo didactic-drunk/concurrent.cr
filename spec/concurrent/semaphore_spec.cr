@@ -21,6 +21,7 @@ describe Semaphore do
         sem.acquire do
           x = n_active.add 1
           x.should(be <= n)
+          Fiber.yield
         ensure
           n_active.sub 1
         end
