@@ -11,12 +11,12 @@ describe Semaphore do
   end
 
   it "allows at most n concurrent accesses" do
-    n = 5
+    n = 20
     n_active = Atomic.new 0
     sem = Semaphore.new n
 
     # spawn a lot of fibers
-    2000.times do
+    3000.times do
       spawn do
         sem.acquire do
           x = n_active.add 1
