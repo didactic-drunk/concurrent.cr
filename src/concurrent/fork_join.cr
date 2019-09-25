@@ -1,10 +1,9 @@
-
 require "atomic"
 
 # A fork-join pool provides an easy way to spawn a bunch of fibers,
 # and then wait for all of them to complete.
 class Concurrent::ForkJoin
-  protected def initialize()
+  protected def initialize
     @close = Channel(Nil).new
     @n = Atomic(Int32).new 0
   end
@@ -16,7 +15,7 @@ class Concurrent::ForkJoin
   end
 
   # Start a fork-join pool, and call the block with it.
-  def self.new(&: ForkJoin ->)
+  def self.new(& : ForkJoin ->)
     f = ForkJoin.new
     begin
       yield f
@@ -40,5 +39,3 @@ class Concurrent::ForkJoin
     end
   end
 end
-
-

@@ -5,7 +5,6 @@ require "atomic"
 include Concurrent
 
 describe ForkJoin do
-
   it "joins after all spawns are done" do
     n = 10
     n_done = Atomic.new 0
@@ -22,4 +21,3 @@ describe ForkJoin do
     n_done.get.should eq(n)
   end
 end
-
