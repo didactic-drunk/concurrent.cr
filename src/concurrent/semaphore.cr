@@ -1,6 +1,5 @@
-
 # TODO: use crystal's spin lock
-#require "crystal/spin_lock"
+# require "crystal/spin_lock"
 class SpinLock
   def sync(&block)
     yield
@@ -31,7 +30,7 @@ class Concurrent::Semaphore
         break
       end
 
-      n_old, swapped = @count.compare_and_set(n_cur, n_cur-1)
+      n_old, swapped = @count.compare_and_set(n_cur, n_cur - 1)
       next if !swapped # race condition
 
       begin
@@ -47,5 +46,5 @@ class Concurrent::Semaphore
       end
       break
     end
-    end
+  end
 end
