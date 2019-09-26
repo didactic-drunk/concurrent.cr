@@ -4,6 +4,7 @@ os:
 
 script:
   - crystal spec
+  - crystal spec -Dpreview_mt
   - crystal tool format --check
   - shards build
   - crystal docs
