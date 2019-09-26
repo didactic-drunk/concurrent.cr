@@ -4,21 +4,15 @@ STDOUT.sync = true
 STDERR.sync = true
 
 class WatchDog
-  @fork_pid : Process?
+  @fork_proc : Process?
 
   def initialize(@timeout : Int32 | Float32)
     @cur_pid = Process.pid
-    @fork_pid = fork do
-      sleep @timeout
-      puts "watchdog killing #{@cur_pid} after #{@timeout}s"
-      Process.kill Signal::TERM, @cur_pid
-      sleep Math.min(@timeout, 2)
-      Process.kill Signal::KILL, @cur_pid rescue nil
-    end
+    @fork_proc = Process.new "sleep '#{@timeout}' && echo 'watchdog killing #{@cur_pid} after #{@timeout}' && kill '#{@cur_pid}'", shell: true
   end
 
   def kill
-    @fork_pid.try &.kill(Signal::KILL)
+    @fork_proc.try &.kill(Signal::KILL)
   end
 
   def self.open(timeout)
