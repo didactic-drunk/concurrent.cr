@@ -17,6 +17,7 @@ class Concurrent::CountDownLatch
 
   getter wait_count = 0 # the current wait count.  0 means not set.
   @saved_wait_count = 0 # only set in initialize
+  @past0 = Atomic::Flag.new
 
   # used for release
   @queue = Channel(Nil).new(1)
@@ -42,8 +43,10 @@ class Concurrent::CountDownLatch
 
   def count_down : Nil
     prev = @count.sub 1
-    # assert
-    raise Error::Internal.new "counted past 0 saved_wait_count=#{@saved_wait_count}" if prev == 0 && @saved_wait_count == 0
+    if prev == 0 && @saved_wait_count == 0
+      # @count starts at 0.   Only run if counting past 0 twice.
+      raise Error::Internal.new "counted past 0 saved_wait_count=#{@saved_wait_count}" unless @past0.test_and_set
+    end
     release if prev == 1
   end
 
@@ -74,6 +77,7 @@ class Concurrent::CountDownLatch
     @queue = Channel(Nil).new(1)
     @wait_count = @saved_wait_count
     @count.set @wait_count
+    @past0.clear
     self
   end
 
