@@ -14,6 +14,7 @@ which inspired [this library](https://github.com/didactic-drunk/concurrent.cr).
 
 Available classes:
 * [Concurrent::CountDownLatch](https://didactic-drunk.github.io/concurrent.cr/Concurrent/CountDownLatch.html)
+* [Concurrent::CyclicBarrier](https://didactic-drunk.github.io/concurrent.cr/Concurrent/CyclicBarrier.html)
 * [Concurrent::Semaphore](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Semaphore.html)
 
 More algorithms are coming.  Contributions welcome.
