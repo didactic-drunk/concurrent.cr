@@ -24,7 +24,7 @@ private def test_latch(latch, fiber_count, wait_set = false)
   finished_count.get.should eq fiber_count
 end
 
-fiber_count = 200
+fiber_count = 20
 
 describe Concurrent::CountDownLatch do
   it "Counts down from a fixed number" do
@@ -43,6 +43,27 @@ describe Concurrent::CountDownLatch do
       5.times do
         test_latch latch, fiber_count, true
         latch.reset
+      end
+    end
+  end
+
+  it "Fixed: Raises when counting down too many times" do
+    latch = Concurrent::CountDownLatch.new 1
+    WatchDog.open 2 do
+      latch.count_down
+      expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+        latch.count_down
+      end
+    end
+  end
+
+  it "Dynamic: Raises when counting down too many times" do
+    latch = Concurrent::CountDownLatch.new
+    WatchDog.open 2 do
+      latch.count_down
+      latch.count_down
+      expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+        latch.wait_count = 1
       end
     end
   end

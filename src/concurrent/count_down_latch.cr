@@ -9,6 +9,9 @@
 # channels are thread safe.
 class Concurrent::CountDownLatch
   class Error < Exception
+    class CountExceeded < Error
+    end
+
     class Internal < Error
     end
   end
@@ -49,7 +52,7 @@ class Concurrent::CountDownLatch
     prev = @count.sub 1
     if prev == 0
       # Dynamic @count starts at 0.   Only run if counting past 0 twice.
-      raise Error::Internal.new "#{Fiber.current} counted past 0 saved_wait_count=#{@saved_wait_count}" unless @past0.test_and_set
+      raise Error::CountExceeded.new "#{Fiber.current} counted past 0 saved_wait_count=#{@saved_wait_count}" unless @past0.test_and_set
     end
     release if prev == 1
   end
@@ -66,7 +69,7 @@ class Concurrent::CountDownLatch
       release
     elsif diff < 0 || !@past0.test_and_set
       # Assert
-      raise Error::Internal.new "counted past 0 cnt=#{@count.get} wait_count=#{wait_count}"
+      raise Error::CountExceeded.new "counted past 0 cnt=#{@count.get} wait_count=#{wait_count}"
     else
       # Still waiting
     end
