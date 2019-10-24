@@ -18,13 +18,17 @@ class Concurrent::CountDownLatch
   getter wait_count = 0 # the current wait count.  0 means not set.
   @saved_wait_count = 0 # only set in initialize
   @past0 = Atomic::Flag.new
+  @error = Atomic(Exception?).new nil
 
   # used for release
   @queue = Channel(Nil).new(1)
 
   def initialize(@saved_wait_count = 0)
     @wait_count = @saved_wait_count
-    @count.set @wait_count if @wait_count != 0
+    if @wait_count != 0
+      @count.set @wait_count
+      @past0.test_and_set
+    end
   end
 
   # Current count
@@ -43,9 +47,9 @@ class Concurrent::CountDownLatch
 
   def count_down : Nil
     prev = @count.sub 1
-    if prev == 0 && @saved_wait_count == 0
-      # @count starts at 0.   Only run if counting past 0 twice.
-      raise Error::Internal.new "counted past 0 saved_wait_count=#{@saved_wait_count}" unless @past0.test_and_set
+    if prev == 0
+      # Dynamic @count starts at 0.   Only run if counting past 0 twice.
+      raise Error::Internal.new "#{Fiber.current} counted past 0 saved_wait_count=#{@saved_wait_count}" unless @past0.test_and_set
     end
     release if prev == 1
   end
@@ -60,7 +64,7 @@ class Concurrent::CountDownLatch
     diff = wait_count + prev # prev should be negative or 0
     if diff == 0
       release
-    elsif diff < 0
+    elsif diff < 0 || !@past0.test_and_set
       # Assert
       raise Error::Internal.new "counted past 0 cnt=#{@count.get} wait_count=#{wait_count}"
     else
@@ -77,7 +81,7 @@ class Concurrent::CountDownLatch
     @queue = Channel(Nil).new(1)
     @wait_count = @saved_wait_count
     @count.set @wait_count
-    @past0.clear
+    @past0.clear if @saved_wait_count == 0
     self
   end
 
