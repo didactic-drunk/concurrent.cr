@@ -47,23 +47,54 @@ describe Concurrent::CountDownLatch do
     end
   end
 
-  it "Fixed: Raises when counting down too many times" do
-    latch = Concurrent::CountDownLatch.new 1
-    WatchDog.open 2 do
-      latch.count_down
-      expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+  describe "Raises when counting down too many times" do
+    it "In #count_down and #wait" do
+      latch = Concurrent::CountDownLatch.new 1
+      WatchDog.open 2 do
         latch.count_down
+
+        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+          latch.count_down
+        end
+        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+          latch.wait
+        end
+      end
+    end
+
+    it "In #wait_count= and #wait" do
+      latch = Concurrent::CountDownLatch.new
+      WatchDog.open 2 do
+        latch.count_down
+        latch.count_down
+
+        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+          latch.wait_count = 1
+        end
+        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+          latch.wait
+        end
       end
     end
   end
 
-  it "Dynamic: Raises when counting down too many times" do
-    latch = Concurrent::CountDownLatch.new
-    WatchDog.open 2 do
-      latch.count_down
-      latch.count_down
-      expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+  describe "Raises when setting #wait_count= more than once" do
+    it "Fixed" do
+      latch = Concurrent::CountDownLatch.new 1
+      WatchDog.open 2 do
+        expect_raises(ArgumentError) do
+          latch.wait_count = 1
+        end
+      end
+    end
+
+    it "Dynamic" do
+      latch = Concurrent::CountDownLatch.new
+      WatchDog.open 2 do
         latch.wait_count = 1
+        expect_raises(ArgumentError) do
+          latch.wait_count = 1
+        end
       end
     end
   end
