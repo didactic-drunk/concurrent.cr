@@ -20,7 +20,7 @@ class Concurrent::CountDownLatch
 
   getter wait_count = 0 # the current wait count.  0 means not set.
   @saved_wait_count = 0 # only set in initialize
-  @past0 = Atomic::Flag.new
+  # TODO: change atomic to fence.
   @error = Atomic(Exception?).new nil
 
   # used for release
@@ -28,10 +28,7 @@ class Concurrent::CountDownLatch
 
   def initialize(@saved_wait_count = 0)
     @wait_count = @saved_wait_count
-    if @wait_count != 0
-      @count.set @wait_count
-      @past0.test_and_set
-    end
+    @count.set (@wait_count == 0 ? Int32::MAX : @wait_count)
   end
 
   # Current count
@@ -54,12 +51,9 @@ class Concurrent::CountDownLatch
   def count_down : Nil
     prev = @count.sub 1
     if prev == 0
-      # Dynamic @count starts at 0.   Only run if counting past 0 twice.
-      unless @past0.test_and_set
-        ex = Error::CountExceeded.new "#{Fiber.current} counted past 0 wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}"
-        @error.compare_and_set nil, ex
-        raise ex
-      end
+      ex = Error::CountExceeded.new "#{Fiber.current} counted past 0 wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}"
+      @error.compare_and_set nil, ex
+      raise ex
     end
     release if prev == 1
   end
@@ -70,11 +64,12 @@ class Concurrent::CountDownLatch
     raise ArgumentError.new("wait_count already set") if @wait_count != 0
     @wait_count = wait_count
 
-    prev = @count.add wait_count
-    diff = wait_count + prev # prev should be negative or 0
+    sub = Int32::MAX - wait_count
+    prev = @count.sub sub
+    diff = prev - sub
     if diff == 0
       release
-    elsif diff < 0 || !@past0.test_and_set
+    elsif diff < 0
       # Assert
       ex = Error::CountExceeded.new "Count exceeded.  cnt=#{@count.get} wait_count=#{wait_count}"
       @error.compare_and_set nil, ex
@@ -93,8 +88,7 @@ class Concurrent::CountDownLatch
     raise Error::Internal.new "unknown state" if @count.get != 0
     @queue = Channel(Nil).new(1)
     @wait_count = @saved_wait_count
-    @count.set @wait_count
-    @past0.clear if @saved_wait_count == 0
+    @count.set (@wait_count == 0 ? Int32::MAX : @wait_count)
     self
   end
 
