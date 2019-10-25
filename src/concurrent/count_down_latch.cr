@@ -18,12 +18,12 @@ class Concurrent::CountDownLatch
 
   @count : Atomic(Int32) = Atomic.new(0_i32)
 
-  getter wait_count = 0 # the current wait count.  0 means not set.
-  @saved_wait_count = 0 # only set in initialize
-  # TODO: change atomic to fence.
+  getter wait_count = 0 # The current wait count.  0 means not set.
+  @saved_wait_count = 0 # Only set in initialize.
+  # TODO: Change atomic to fence.
   @error = Atomic(Exception?).new nil
 
-  # used for release
+  # Used for release.
   @queue = Channel(Nil).new(1)
 
   def initialize(@saved_wait_count = 0)
@@ -31,7 +31,7 @@ class Concurrent::CountDownLatch
     @count.set (@wait_count == 0 ? Int32::MAX : @wait_count)
   end
 
-  # Current count
+  # Current count.
   def count
     @count.get
   end
@@ -80,6 +80,13 @@ class Concurrent::CountDownLatch
     end
 
     wait_count
+  end
+
+  # Use instead of count_down.
+  # Stores the first error and raises it when #wait is called.
+  def error(ex : Exception) : Nil
+    @error.compare_and_set nil, ex
+    count_down
   end
 
   # Only call reset after latch is released or after initialize.
