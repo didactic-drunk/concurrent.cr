@@ -41,10 +41,13 @@ class Concurrent::CountDownLatch
 
   # Wait until count_down has been called wait_count times.
   # TODO: timeout
-  def wait
+  def wait : self
     @queue.receive
     self
   rescue Channel::ClosedError
+    if ex = @error.get
+      raise ex
+    end
     self
   end
 
@@ -52,7 +55,11 @@ class Concurrent::CountDownLatch
     prev = @count.sub 1
     if prev == 0
       # Dynamic @count starts at 0.   Only run if counting past 0 twice.
-      raise Error::CountExceeded.new "#{Fiber.current} counted past 0 saved_wait_count=#{@saved_wait_count}" unless @past0.test_and_set
+      unless @past0.test_and_set
+        ex = Error::CountExceeded.new "#{Fiber.current} counted past 0 wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}"
+        @error.compare_and_set nil, ex
+        raise ex
+      end
     end
     release if prev == 1
   end
@@ -69,7 +76,10 @@ class Concurrent::CountDownLatch
       release
     elsif diff < 0 || !@past0.test_and_set
       # Assert
-      raise Error::CountExceeded.new "counted past 0 cnt=#{@count.get} wait_count=#{wait_count}"
+      ex = Error::CountExceeded.new "Count exceeded.  cnt=#{@count.get} wait_count=#{wait_count}"
+      @error.compare_and_set nil, ex
+      release
+      raise ex
     else
       # Still waiting
     end
