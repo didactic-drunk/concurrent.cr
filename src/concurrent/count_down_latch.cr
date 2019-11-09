@@ -1,4 +1,4 @@
-# Allows **one** fiber to wait until a series of operations performed in other fibers complete.
+# Allows fibers to wait until a series of operations performed in other fibers complete.
 #
 # This class has additional capabilities not found in java or other implementations:
 # - `wait_count` may be set at initialization or if not provided to initialize() any time after (only once between resets).
