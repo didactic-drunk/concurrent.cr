@@ -1,4 +1,5 @@
 require "spec"
+require "semantic_version"
 
 STDOUT.sync = true
 STDERR.sync = true
@@ -12,7 +13,11 @@ class WatchDog
   end
 
   def kill
-    @fork_proc.try &.kill(Signal::KILL)
+    {% if Process.has_method?(:signal) %}
+      @fork_proc.try &.signal(Signal::KILL)
+    {% else %}
+      @fork_proc.try &.kill(Signal::KILL)
+    {% end %}
   end
 
   def self.open(timeout)
