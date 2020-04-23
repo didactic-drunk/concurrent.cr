@@ -55,6 +55,8 @@ class Concurrent::CountDownLatch
       raise_ex Error::CountExceeded.new("#{Fiber.current} counted past 0 wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}")
     when 1
       release
+    else
+      # Exhaustive case
     end
   end
 
