@@ -50,12 +50,12 @@ class Concurrent::CountDownLatch
 
   def count_down : Nil
     prev = @count.sub 1
-    if prev == 0
-      ex = Error::CountExceeded.new "#{Fiber.current} counted past 0 wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}"
-      @error.compare_and_set nil, ex
-      raise ex
+    case prev
+    when 0
+      raise_ex Error::CountExceeded.new("#{Fiber.current} counted past 0 wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}")
+    when 1
+      release
     end
-    release if prev == 1
   end
 
   # Must be set exactly once and only if not supplied to #initialize
@@ -71,10 +71,7 @@ class Concurrent::CountDownLatch
       release
     elsif diff < 0
       # Assert
-      ex = Error::CountExceeded.new "Count exceeded.  cnt=#{@count.get} wait_count=#{wait_count}"
-      @error.compare_and_set nil, ex
-      release
-      raise ex
+      raise_ex Error::CountExceeded.new("#{Fiber.current} Count exceeded.  cnt=#{@count.get} wait_count=#{wait_count}")
     else
       # Still waiting
     end
@@ -89,10 +86,17 @@ class Concurrent::CountDownLatch
     count_down
   end
 
+  private def raise_ex(ex : Exception) : Nil
+    @error.compare_and_set nil, ex
+    release
+    raise ex
+  end
+
   # Only call reset after latch is released or after initialize.
   # Undefined behavior if called between use of count_down and release.
   def reset
-    raise Error::Internal.new "unknown state" if @count.get != 0
+    cur_count = @count.get
+    raise Error::Internal.new "unknown state #{cur_count}" unless cur_count == 0 || cur_count == @saved_wait_count || cur_count == Int32::MAX
     @queue = Channel(Nil).new(1)
     @wait_count = @saved_wait_count
     @count.set (@wait_count == 0 ? Int32::MAX : @wait_count)
