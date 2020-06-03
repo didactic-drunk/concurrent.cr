@@ -1,6 +1,6 @@
 module Concurrent::Enumerable
   module Receive
-    protected def receive_loop(src_vch, src_ech) : Nil
+    protected def receive_loop(src_vch, src_ech, dst_ech) : Nil
       loop do
         msg = begin
           src_vch.receive
@@ -8,7 +8,15 @@ module Concurrent::Enumerable
           break
         end
 
-        yield msg
+        begin
+          yield msg
+        rescue ex
+          dst_ech ? dst_ech.send(ex) : raise(ex)
+        end
+      end
+
+      while ex = src_ech.receive?
+        dst_ech ? dst_ech.send(ex) : raise(ex)
       end
     end
   end
@@ -79,7 +87,7 @@ module Concurrent::Enumerable
     end
 
     def each
-      receive_loop @src_vch, @src_ech do |msg|
+      receive_loop @src_vch, @src_ech, nil do |msg|
         yield msg
       end
     end
@@ -99,7 +107,7 @@ module Concurrent::Enumerable
         super(fibers)
 
         spawn_with_close fibers, src_vch, src_ech do
-          receive_loop src_vch, src_ech do |o|
+          receive_loop src_vch, src_ech, @dst_ech do |o|
             mo = block.call o # map
             @dst_vch.send mo
           end
@@ -112,7 +120,7 @@ module Concurrent::Enumerable
         super(fibers)
 
         spawn_with_close fibers, src_vch, src_ech do
-          receive_loop src_vch, src_ech do |o|
+          receive_loop src_vch, src_ech, @dst_ech do |o|
             @dst_vch.send(o) if block.call(o) # select
           end
         end
