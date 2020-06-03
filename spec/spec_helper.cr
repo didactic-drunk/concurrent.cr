@@ -7,7 +7,7 @@ STDERR.sync = true
 class WatchDog
   @fork_proc : Process?
 
-  def initialize(@timeout : Int32 | Float32)
+  def initialize(@timeout : Int32 | Float32 | Float64)
     @cur_pid = Process.pid
     @fork_proc = Process.new "sleep '#{@timeout}' && echo 'watchdog killing #{@cur_pid} after #{@timeout}' && kill '#{@cur_pid}'", shell: true
   end
