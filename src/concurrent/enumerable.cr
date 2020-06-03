@@ -2,6 +2,30 @@ module Concurrent::Enumerable
   module Receive
     protected def receive_loop(src_vch, src_ech, dst_ech) : Nil
       loop do
+        begin
+          select
+          when msg = src_vch.receive
+            begin
+              yield msg
+            rescue ex
+              handle_error ex, dst_ech
+            end
+          when ex = src_ech.receive
+            handle_error ex, dst_ech
+          end
+        rescue Channel::ClosedError
+          break
+        end
+      end
+
+      receive_loop_single_channel(src_vch, src_ech, dst_ech) do |msg|
+        yield msg
+      end
+    end
+
+    # One channel is closed. Handle remaining messages.
+    protected def receive_loop_single_channel(src_vch, src_ech, dst_ech) : Nil
+      loop do
         msg = begin
           src_vch.receive
         rescue Channel::ClosedError
@@ -11,13 +35,17 @@ module Concurrent::Enumerable
         begin
           yield msg
         rescue ex
-          dst_ech ? dst_ech.send(ex) : raise(ex)
+          handle_error ex, dst_ech
         end
       end
 
       while ex = src_ech.receive?
-        dst_ech ? dst_ech.send(ex) : raise(ex)
+        handle_error ex, dst_ech
       end
+    end
+
+    def handle_error(ex, dst_ech)
+      dst_ech ? dst_ech.send(ex) : raise(ex)
     end
   end
 
@@ -44,6 +72,9 @@ module Concurrent::Enumerable
       fibers.times do
         spawn do
           block.call
+        rescue ex : Exception
+          ex.inspect_with_backtrace STDOUT
+          abort "not reached #{ex.inspect}"
         ensure
           # Last fiber closes channel.
           if @fibers_remaining.sub(1) == 1
@@ -94,6 +125,10 @@ module Concurrent::Enumerable
   end
 
   # `map` and `select` run in a fiber pool.  All other methods "join" in the calling fiber.
+  #
+  # Exceptions are raised in #each when joined.
+  #
+  # TODO: better error handling.
   class Parallel(T) < Base(T)
     def initialize(obj : ::Enumerable(T), *, fibers : Int32)
       super(fibers: fibers)
@@ -127,15 +162,13 @@ module Concurrent::Enumerable
       end
     end
 
-    private def spawn_send(obj)
+    private def spawn_send(obj) : Nil
       spawn do
         obj.each do |o|
           @dst_vch.send o
         end
       rescue ex
-        # BUG: rescue
-        p ex
-        raise ex
+        @dst_ech.send ex
       ensure
         @dst_vch.close
         @dst_ech.close
@@ -145,7 +178,7 @@ module Concurrent::Enumerable
 end
 
 module ::Enumerable(T)
-  # TODO: error handling
+  # TODO: better error handling
   # *
   # See `Concurrent::Enumerable::Parallel`
   def parallel(*, fibers : Int32 = System.cpu_count.to_i)
