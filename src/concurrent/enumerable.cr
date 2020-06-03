@@ -13,13 +13,37 @@ module Concurrent::Enumerable
     end
   end
 
-  abstract struct Base(T)
+  abstract class Base(T)
     include ::Enumerable(T)
     include Receive
 
     def initialize(@fibers : Int32)
       @dst_vch = dst_vch = Channel(T).new
       @dst_ech = dst_ech = Channel(Exception).new
+      @fibers_remaining = Atomic(Int32).new -1
+    end
+
+    protected def set_waiting_fibers(n)
+      last, succeed = @fibers_remaining.compare_and_set -1, n
+      unless succeed
+        raise "#{self.class} can't use .each more than once last=#{last} n=#{n}"
+      end
+    end
+
+    protected def spawn_with_close(fibers, src_vch, src_ech : Channel(Exception), &block : -> _)
+      set_waiting_fibers fibers
+
+      fibers.times do
+        spawn do
+          block.call
+        ensure
+          # Last fiber closes channel.
+          if @fibers_remaining.sub(1) == 1
+            @dst_vch.close
+            @dst_ech.close
+          end
+        end
+      end
     end
 
     def serial
@@ -30,13 +54,24 @@ module Concurrent::Enumerable
       serial.each &block
     end
 
+    # Parallel map.  `&block` is evaluated in a fiber pool.
     def map(*, fibers : Int32? = nil, &block : T -> U) forall U
       output = Parallel::Map(T, U).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
       output
     end
+
+    # Parallel select.  `&block` is evaluated in a fiber pool.
+    def select(*, fibers : Int32? = nil, &block : T -> Bool)
+      output = Parallel::Select(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output
+    end
+
+    # TODO: Implement cancel.
+    # def cancel
+    # end
   end
 
-  struct Serial(T)
+  class Serial(T)
     include ::Enumerable(T)
     include Receive
 
@@ -50,36 +85,35 @@ module Concurrent::Enumerable
     end
   end
 
-  # `map` runs in parallel.  All other methods "join" in the calling fiber.
-  struct Parallel(T) < Base(T)
+  # `map` and `select` run in a fiber pool.  All other methods "join" in the calling fiber.
+  class Parallel(T) < Base(T)
     def initialize(obj : ::Enumerable(T), *, fibers : Int32)
       super(fibers: fibers)
+      set_waiting_fibers 0
 
       spawn_send obj
     end
 
-    struct Map(S, D) < Base(D)
+    class Map(S, D) < Base(D)
       def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> D)
         super(fibers)
 
-        spawn_relay fibers, src_vch, src_ech, &block
+        spawn_with_close fibers, src_vch, src_ech do
+          receive_loop src_vch, src_ech do |o|
+            mo = block.call o # map
+            @dst_vch.send mo
+          end
+        end
       end
+    end
 
-      private def spawn_relay(fibers, src_vch, src_ech : Channel(Exception), &block : S -> D)
-        fibers_remaining = Atomic(Int32).new fibers.to_i
+    class Select(S) < Base(S)
+      def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> Bool)
+        super(fibers)
 
-        fibers.times do
-          spawn do
-            receive_loop(src_vch, src_ech) do |o|
-              mo = block.call o # map
-              @dst_vch.send mo
-            end
-          ensure
-            # Last fiber closes channel.
-            if fibers_remaining.sub(1) == 1
-              @dst_vch.close
-              @dst_ech.close
-            end
+        spawn_with_close fibers, src_vch, src_ech do
+          receive_loop src_vch, src_ech do |o|
+            @dst_vch.send(o) if block.call(o) # select
           end
         end
       end

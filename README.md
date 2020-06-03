@@ -38,7 +38,7 @@ More algorithms are coming.  Contributions welcome.
 ```crystal
 require "concurrent/enumerable"
 
-(1..50).parallel.map { |n| n.to_s }.to_a
+(1..50)).parallel.select(&.even?).map { |n| n.to_s }.to_a
 
 ```
 
