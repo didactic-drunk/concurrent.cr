@@ -53,9 +53,10 @@ module Concurrent::Enumerable
     include ::Enumerable(T)
     include Receive
 
-    def initialize(@fibers : Int32)
-      @dst_vch = dst_vch = Channel(T).new
-      @dst_ech = dst_ech = Channel(Exception).new
+    @dst_ech : Channel(Exception)
+
+    def initialize(*, @fibers : Int32, @dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil)
+      @dst_ech = dst_ech ||= Channel(Exception).new
       @fibers_remaining = Atomic(Int32).new -1
     end
 
@@ -124,6 +125,13 @@ module Concurrent::Enumerable
     end
   end
 
+  class Stream(T) < Base(T)
+    def initialize(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil)
+      super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech)
+      set_waiting_fibers 0
+    end
+  end
+
   # `map` and `select` run in a fiber pool.  All other methods "join" in the calling fiber.
   #
   # Exceptions are raised in #each when joined.
@@ -131,7 +139,7 @@ module Concurrent::Enumerable
   # TODO: better error handling.
   class Parallel(T) < Base(T)
     def initialize(obj : ::Enumerable(T), *, fibers : Int32)
-      super(fibers: fibers)
+      super(fibers: fibers, dst_vch: Channel(T).new)
       set_waiting_fibers 0
 
       spawn_send obj
@@ -139,7 +147,7 @@ module Concurrent::Enumerable
 
     class Map(S, D) < Base(D)
       def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> D)
-        super(fibers)
+        super(fibers: fibers, dst_vch: Channel(D).new)
 
         spawn_with_close fibers, src_vch, src_ech do
           receive_loop src_vch, src_ech, @dst_ech do |o|
@@ -152,7 +160,7 @@ module Concurrent::Enumerable
 
     class Select(S) < Base(S)
       def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> Bool)
-        super(fibers)
+        super(fibers: fibers, dst_vch: Channel(S).new)
 
         spawn_with_close fibers, src_vch, src_ech do
           receive_loop src_vch, src_ech, @dst_ech do |o|
