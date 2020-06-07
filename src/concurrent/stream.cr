@@ -1,3 +1,5 @@
+require "./wait"
+
 module Concurrent::Stream
   module Receive
     protected def receive_loop(src_vch, src_ech, dst_ech) : Nil
@@ -58,7 +60,12 @@ module Concurrent::Stream
     include ::Enumerable(T)
     include Receive
 
+    @dst_vch : Channel(T)
     @dst_ech : Channel(Exception)
+
+    @wait = Concurrent::Wait.new
+
+    delegate :wait, to: @wait
 
     def initialize(*, @fibers : Int32, @dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil)
       @dst_ech = dst_ech ||= Channel(Exception).new
@@ -111,9 +118,9 @@ module Concurrent::Stream
     end
 
     # Parallel tee.  `&block` is evaluated in a fiber pool.
-    def run(*, fibers : Int32? = nil, &block : T -> _) : Nil
+    def run(*, fibers : Int32? = nil, &block : T -> _)
       output = Run(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
-      Nil
+      output
     end
 
     # Parallel tee.  `&block` is evaluated in a fiber pool.
@@ -128,6 +135,8 @@ module Concurrent::Stream
 
       @dst_vch.close
       @dst_ech.close
+    ensure
+      @wait.done
     end
 
     # TODO: Implement cancel.

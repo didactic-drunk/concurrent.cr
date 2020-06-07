@@ -80,8 +80,8 @@ describe Enumerable do
     WatchDog.open 1 do
       src = (1..10).to_a
       run_sum = Atomic(Int32).new 0
-      sum = src.parallel.select(&.even?).run { |n| run_sum.add n }
-      sleep 0.1
+      run = src.parallel.select(&.even?).run { |n| run_sum.add n }
+      run.wait
 
       run_sum.get.should eq 30
     end

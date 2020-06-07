@@ -79,15 +79,13 @@ require "concurrent/channel"
 ch = Channel(Int32).new
 # Messages may be processed in parallel within each `tee` and `run`.
 # Make sure to use immutable objects or concurrency safe data structures.
-ch.parallel.tee { |n| Log.info { "n=#{n}" } }.run { |n| p n }
+run = ch.parallel.tee { |n| Log.info { "n=#{n}" } }.run { |n| p n }
 
 10.times { |i| ch.send 1 }
 ch.close
 
-# No completion callback yet.  Message processing status can't be determined. 
-# Only use `run` for services where message loss is acceptable until a completion callback is provided.
-#exit
-
+# Wait until all messages/errors are processed.
+run.wait
 ```
 
 ### CountDownLatch

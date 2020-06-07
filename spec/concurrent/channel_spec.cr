@@ -5,7 +5,7 @@ describe Channel do
   it "parallel map" do
     WatchDog.open 1 do
       src = (1..10).to_a
-      ch = Channel(Int32).new src.size+1
+      ch = Channel(Int32).new src.size + 1
       src.each { |i| ch.send i }
       ch.close
 
