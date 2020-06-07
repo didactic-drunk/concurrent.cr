@@ -13,8 +13,8 @@ Inspired by Erlang, Clojure, Scala, Haskell, F#, C#, Java, and classic concurren
 which inspired [this library](https://github.com/didactic-drunk/concurrent.cr).
 
 Available classes:
-* [Concurrent::Enumerable](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Enumerable.html)
-* [Concurrent::Channel](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Enumerable.html)
+* [Concurrent::Enumerable](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Stream.html)
+* [Concurrent::Channel](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Stream.html)
 * [Concurrent::CountDownLatch](https://didactic-drunk.github.io/concurrent.cr/Concurrent/CountDownLatch.html)
 * [Concurrent::CyclicBarrier](https://didactic-drunk.github.io/concurrent.cr/Concurrent/CyclicBarrier.html)
 * [Concurrent::Semaphore](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Semaphore.html)
@@ -43,8 +43,8 @@ More algorithms are coming.  Contributions welcome.
 ```crystal
 require "concurrent/enumerable"
 
-(1..50).parallel.select(&.even?).map { |n| n + 1 }.sum
-                 ^               ^                 ^ Results joined when any Enumerable method called.
+(1..50).parallel.select(&.even?).map { |n| n + 1 }.serial.sum
+                 ^               ^                 ^ Results joined.
                  |               | Spawns separate fiber pool
                  | Spawns fiber pool
 ```
@@ -67,7 +67,27 @@ end
 # Receives from map result channel and sums.
 # All other fibers will shut down after all messages are processed.
 # Any errors in processing are raised here.
-map.sum
+map.serial.sum
+```
+
+### Open ended stream processing aka simplified fiber pools (experimental)
+```crystal
+require "concurrent/channel"
+
+# Same interface and restrictions as concurrent/enumerable.
+
+ch = Channel(Int32).new
+# Messages may be processed in parallel within each `tee` and `run`.
+# Make sure to use immutable objects or concurrency safe data structures.
+ch.parallel.tee { |n| Log.info { "n=#{n}" } }.run { |n| p n }
+
+10.times { |i| ch.send 1 }
+ch.close
+
+# No completion callback yet.  Message processing status can't be determined. 
+# Only use `run` for services where message loss is acceptable until a completion callback is provided.
+#exit
+
 ```
 
 ### CountDownLatch

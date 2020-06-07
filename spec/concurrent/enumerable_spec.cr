@@ -13,9 +13,9 @@ private class TestEachFail
   end
 end
 
-describe Concurrent::Enumerable do
+describe Enumerable do
   it "parallel map" do
-    WatchDog.open 1.5 do
+    WatchDog.open 1 do
       src = (1..10).to_a
       parallel = src.parallel
 
@@ -28,7 +28,7 @@ describe Concurrent::Enumerable do
   end
 
   it "parallel map error in map" do
-    WatchDog.open 1.5 do
+    WatchDog.open 1 do
       src = (1..10).to_a
       parallel = src.parallel(fibers: 2)
 
@@ -43,7 +43,7 @@ describe Concurrent::Enumerable do
   end
 
   it "parallel map error in each" do
-    WatchDog.open 1.5 do
+    WatchDog.open 1 do
       src = TestEachFail.new
       parallel = src.parallel(fibers: 2)
 
@@ -58,11 +58,32 @@ describe Concurrent::Enumerable do
   end
 
   it "parallel select" do
-    WatchDog.open 1.5 do
+    WatchDog.open 1 do
       src = (1..10).to_a
       dst = src.parallel.select(&.even?).select { |n| n > 5 }.to_a
 
       dst.sort.should eq src.select(&.even?).select { |n| n > 5 }
+    end
+  end
+
+  it "parallel tee" do
+    WatchDog.open 1 do
+      src = (1..10).to_a
+      tee_sum = Atomic(Int32).new 0
+      sum = src.parallel.select(&.even?).tee { |n| tee_sum.add n }.serial.sum
+
+      tee_sum.get.should eq sum
+    end
+  end
+
+  it "parallel run" do
+    WatchDog.open 1 do
+      src = (1..10).to_a
+      run_sum = Atomic(Int32).new 0
+      sum = src.parallel.select(&.even?).run { |n| run_sum.add n }
+      sleep 0.1
+
+      run_sum.get.should eq 30
     end
   end
 

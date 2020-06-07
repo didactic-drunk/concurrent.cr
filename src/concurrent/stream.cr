@@ -1,4 +1,4 @@
-module Concurrent::Enumerable
+module Concurrent::Stream
   module Receive
     protected def receive_loop(src_vch, src_ech, dst_ech) : Nil
       loop do
@@ -49,6 +49,11 @@ module Concurrent::Enumerable
     end
   end
 
+  # `map`, `select`, `run` and `tee` run in a fiber pool.  All other methods "join" in the calling fiber.
+  #
+  # Exceptions are raised in #each when joined.
+  #
+  # TODO: better error handling.
   abstract class Base(T)
     include ::Enumerable(T)
     include Receive
@@ -79,8 +84,7 @@ module Concurrent::Enumerable
         ensure
           # Last fiber closes channel.
           if @fibers_remaining.sub(1) == 1
-            @dst_vch.close
-            @dst_ech.close
+            close
           end
         end
       end
@@ -96,14 +100,34 @@ module Concurrent::Enumerable
 
     # Parallel map.  `&block` is evaluated in a fiber pool.
     def map(*, fibers : Int32? = nil, &block : T -> U) forall U
-      output = Parallel::Map(T, U).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output = Map(T, U).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
       output
     end
 
     # Parallel select.  `&block` is evaluated in a fiber pool.
     def select(*, fibers : Int32? = nil, &block : T -> Bool)
-      output = Parallel::Select(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output = Select(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
       output
+    end
+
+    # Parallel tee.  `&block` is evaluated in a fiber pool.
+    def run(*, fibers : Int32? = nil, &block : T -> _) : Nil
+      output = Run(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      Nil
+    end
+
+    # Parallel tee.  `&block` is evaluated in a fiber pool.
+    def tee(*, fibers : Int32? = nil, &block : T -> _)
+      output = Tee(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output
+    end
+
+    def close : Nil
+      return if @closed
+      @closed = true
+
+      @dst_vch.close
+      @dst_ech.close
     end
 
     # TODO: Implement cancel.
@@ -125,71 +149,63 @@ module Concurrent::Enumerable
     end
   end
 
-  class Stream(T) < Base(T)
+  class Source(T) < Base(T)
     def initialize(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil)
       super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech)
       set_waiting_fibers 0
     end
   end
 
-  # `map` and `select` run in a fiber pool.  All other methods "join" in the calling fiber.
-  #
-  # Exceptions are raised in #each when joined.
-  #
-  # TODO: better error handling.
-  class Parallel(T) < Base(T)
-    def initialize(obj : ::Enumerable(T), *, fibers : Int32)
-      super(fibers: fibers, dst_vch: Channel(T).new)
-      set_waiting_fibers 0
+  class Map(S, D) < Base(D)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> D)
+      super(fibers: fibers, dst_vch: Channel(D).new)
 
-      spawn_send obj
-    end
-
-    class Map(S, D) < Base(D)
-      def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> D)
-        super(fibers: fibers, dst_vch: Channel(D).new)
-
-        spawn_with_close fibers, src_vch, src_ech do
-          receive_loop src_vch, src_ech, @dst_ech do |o|
-            mo = block.call o # map
-            @dst_vch.send mo
-          end
+      spawn_with_close fibers, src_vch, src_ech do
+        receive_loop src_vch, src_ech, @dst_ech do |o|
+          mo = block.call o # map
+          @dst_vch.send mo
         end
-      end
-    end
-
-    class Select(S) < Base(S)
-      def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> Bool)
-        super(fibers: fibers, dst_vch: Channel(S).new)
-
-        spawn_with_close fibers, src_vch, src_ech do
-          receive_loop src_vch, src_ech, @dst_ech do |o|
-            @dst_vch.send(o) if block.call(o) # select
-          end
-        end
-      end
-    end
-
-    private def spawn_send(obj) : Nil
-      spawn do
-        obj.each do |o|
-          @dst_vch.send o
-        end
-      rescue ex
-        @dst_ech.send ex
-      ensure
-        @dst_vch.close
-        @dst_ech.close
       end
     end
   end
-end
 
-module ::Enumerable(T)
-  # TODO: better error handling
-  # *
-  # See `Concurrent::Enumerable::Parallel`
-  def parallel(*, fibers : Int32 = System.cpu_count.to_i)
-    Concurrent::Enumerable::Parallel(T).new self, fibers: fibers
+  class Select(S) < Base(S)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> Bool)
+      super(fibers: fibers, dst_vch: Channel(S).new)
+
+      spawn_with_close fibers, src_vch, src_ech do
+        receive_loop src_vch, src_ech, @dst_ech do |o|
+          @dst_vch.send(o) if block.call(o) # select
+        end
+      end
+    end
+  end
+
+  class Run(S) < Base(S)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> _)
+      dst_vch = Channel(S).new.tap { |ch| ch.close }
+      # todo: leave channel open if error handler provided
+      dst_ech = Channel(Exception).new.tap { |ch| ch.close }
+      super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech)
+
+      spawn_with_close fibers, src_vch, src_ech do
+        receive_loop src_vch, src_ech, @dst_ech do |o|
+          block.call o
+        end
+      end
+    end
+  end
+
+  class Tee(S) < Base(S)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> _)
+      super(fibers: fibers, dst_vch: Channel(S).new)
+
+      spawn_with_close fibers, src_vch, src_ech do
+        receive_loop src_vch, src_ech, @dst_ech do |o|
+          @dst_vch.send o
+          block.call o
+        end
+      end
+    end
   end
 end

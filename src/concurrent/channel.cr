@@ -1,12 +1,12 @@
-require "./enumerable"
+require "./stream"
 
 class Channel(T)
   private ECH = Channel(Exception).new.tap { |ch| ch.close }
 
   # TODO: better error handling
   # *
-  # See `Concurrent::Enumerable::Parallel`
+  # See `Concurrent::Stream`
   def parallel(*, fibers : Int32 = System.cpu_count.to_i)
-    Concurrent::Enumerable::Stream(T).new fibers: fibers, dst_vch: self, dst_ech: ECH
+    Concurrent::Stream::Source(T).new fibers: fibers, dst_vch: self, dst_ech: ECH
   end
 end
