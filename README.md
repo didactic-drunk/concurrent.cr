@@ -56,18 +56,16 @@ require "concurrent/channel"
 # Same interface and restrictions as concurrent/enumerable.
 
 ch = Channel(Int32).new
-# map is processed in a Fiber pool.
-map = ch.parallel.map { |n| n + 1 }
 
 spawn do
   10.times { |i| ch.send 1 }
   ch.close
 end
 
-# Receives from map result channel and sums.
+# map is processed in a Fiber pool.
 # All other fibers will shut down after all messages are processed.
 # Any errors in processing are raised here.
-map.serial.sum
+ch.parallel.map { |n| n + 1 }.serial.sum
 ```
 
 ### Open ended stream processing aka simplified fiber pools (experimental)
