@@ -37,7 +37,7 @@ describe Enumerable do
       end
 
       expect_raises(TestError) do
-        map.each { |num| }
+        map.serial.each { |num| }
       end
     end
   end
@@ -52,7 +52,7 @@ describe Enumerable do
       end
 
       expect_raises(TestError) do
-        map.each { |num| }
+        map.serial.each { |num| }
       end
     end
   end

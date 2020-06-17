@@ -6,14 +6,15 @@ require "./wait"
 # Channel#parallel creates a Stream::Source reading from the Channel.
 # Enumerable#parallel creates a Channel and Stream::Source reading from it.
 #
-### Stream operations:
+# ## Stream operations:
 # * #map { } - Same as Enumereable#map but runs in a fiber pool.
 # * #select { } - Same as Enumereable#select but runs in a fiber pool.
-# * #each { } - Runs block in a fiber pool.  Further processing is not possible except for #wait.
+# * #run { } - Runs block in a fiber pool.  Further processing is not possible except for #wait.
 # * #tee { } - Runs block in a fiber pool passing the original message to the next Stream.
 # * #serial - returns an Enumerable collecting results from a parallel Stream.
 #
 module Concurrent::Stream
+  # :nodoc:
   module Receive
     protected def receive_loop(src_vch, src_ech, dst_ech) : Nil
       loop do
@@ -70,13 +71,14 @@ module Concurrent::Stream
   #
   # TODO: better error handling.
   abstract class Base(T)
-    include ::Enumerable(T)
     include Receive
 
     @dst_vch : Channel(T)
     @dst_ech : Channel(Exception)
 
     @wait = Concurrent::Wait.new
+
+    delegate :to_a, to: serial
 
     delegate :wait, to: @wait
 
@@ -114,9 +116,9 @@ module Concurrent::Stream
       Serial(T).new @dst_vch, @dst_ech
     end
 
-    def each(&block : T -> U) forall U
-      serial.each &block
-    end
+    #    def each(&block : T -> U) forall U
+    #     serial.each &block
+    #  end
 
     # Parallel map.  `&block` is evaluated in a fiber pool.
     def map(*, fibers : Int32? = nil, &block : T -> U) forall U
@@ -130,13 +132,15 @@ module Concurrent::Stream
       output
     end
 
-    # Parallel tee.  `&block` is evaluated in a fiber pool.
+    # Parallel run.  `&block` is evaluated in a fiber pool.
+    # Further processing is not possible except for #wait.
     def run(*, fibers : Int32? = nil, &block : T -> _)
       output = Run(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
       output
     end
 
     # Parallel tee.  `&block` is evaluated in a fiber pool.
+    # The original message is passed to the next Stream.
     def tee(*, fibers : Int32? = nil, &block : T -> _)
       output = Tee(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
       output
@@ -171,6 +175,7 @@ module Concurrent::Stream
     end
   end
 
+  # Input from an Enumerable or Channel.
   class Source(T) < Base(T)
     def initialize(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil)
       super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech)
