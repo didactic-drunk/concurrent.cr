@@ -1,5 +1,18 @@
 require "./wait"
 
+# Influenced by [Ruby parallel](https://github.com/grosser/parallel)
+# and [Java streams](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html).
+#
+# Channel#parallel creates a Stream::Source reading from the Channel.
+# Enumerable#parallel creates a Channel and Stream::Source reading from it.
+#
+### Stream operations:
+# * #map { } - Same as Enumereable#map but runs in a fiber pool.
+# * #select { } - Same as Enumereable#select but runs in a fiber pool.
+# * #each { } - Runs block in a fiber pool.  Further processing is not possible except for #wait.
+# * #tee { } - Runs block in a fiber pool passing the original message to the next Stream.
+# * #serial - returns an Enumerable collecting results from a parallel Stream.
+#
 module Concurrent::Stream
   module Receive
     protected def receive_loop(src_vch, src_ech, dst_ech) : Nil
