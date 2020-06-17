@@ -13,6 +13,7 @@ require "./wait"
 # * #tee { } - Runs block in a fiber pool passing the original message to the next Stream.
 # * #serial - returns an Enumerable collecting results from a parallel Stream.
 #
+@[Experimental]
 module Concurrent::Stream
   # :nodoc:
   module Receive

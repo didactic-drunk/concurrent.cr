@@ -4,6 +4,7 @@ module ::Enumerable(T)
   # TODO: better error handling
   # *
   # See `Concurrent::Stream`
+  @[Experimental]
   def parallel(*, fibers : Int32 = System.cpu_count.to_i)
     dst_vch = Channel(T).new
     Concurrent::Stream::Source(T).new(fibers: fibers, dst_vch: dst_vch).tap do |parallel|
