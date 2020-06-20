@@ -77,7 +77,7 @@ require "concurrent/channel"
 ch = Channel(Int32).new
 # Messages may be processed in parallel within each `tee` and `run`.
 # Make sure to use immutable objects or concurrency safe data structures.
-run = ch.parallel.tee { |n| Log.info { "n=#{n}" } }.run { |n| p n }
+run = ch.parallel.tee { |n| Log.info { "n=#{n}" } }.batch(2).run { |n| p n }
 
 10.times { |i| ch.send 1 }
 ch.close

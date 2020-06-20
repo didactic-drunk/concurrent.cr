@@ -87,6 +87,20 @@ describe Enumerable do
     end
   end
 
+  it "parallel batch" do
+    WatchDog.open 1 do
+      src = (1..10).to_a
+      sum = 0
+      batch_size = 2
+      src.parallel.batch(batch_size).serial.each do |ary|
+        ary.size.should eq batch_size
+        sum += ary.sum
+      end
+
+      sum.should eq 55
+    end
+  end
+
   pending "many more methods" do
   end
 end

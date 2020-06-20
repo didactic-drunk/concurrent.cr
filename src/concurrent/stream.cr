@@ -10,6 +10,7 @@ require "./wait"
 # ## Stream operations:
 # * #map { } - Same as Enumerable#map but runs in a fiber pool.
 # * #select { } - Same as Enumerable#select but runs in a fiber pool.
+# * #batch(size) { } - Groups results in to chunks up to the given size.
 # * #run { } - Runs block in a fiber pool.  Further processing is not possible except for #wait.
 # * #tee { } - Runs block in a fiber pool passing the original message to the next Stream.
 # * #serial - returns an Enumerable collecting results from a parallel Stream.
@@ -67,7 +68,9 @@ module Concurrent::Stream
     end
   end
 
-  # `map`, `select`, `run` and `tee` run in a fiber pool.  All other methods "join" in the calling fiber.
+  # `map`, `select`, `run` and `tee` run in a fiber pool.
+  # `batch` runs in a single fiber.
+  # All other methods "join" in the calling fiber.
   #
   # Exceptions are raised in #each when joined.
   #
@@ -131,6 +134,14 @@ module Concurrent::Stream
     # Parallel select.  `&block` is evaluated in a fiber pool.
     def select(*, fibers : Int32? = nil, &block : T -> Bool)
       output = Select(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output
+    end
+
+    # Parallel batch.  Runs in a single fiber.  Multiple fibers would delay further stream processing.
+    def batch(size : Int32)
+      raise ArgumentError.new("Size must be positive") if size <= 0
+
+      output = Batch(T).new @dst_vch, @dst_ech, batch_size: size
       output
     end
 
@@ -209,6 +220,25 @@ module Concurrent::Stream
       end
     end
   end
+
+  class Batch(S) < Base(Array(S))
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, batch_size : Int32)
+      super(fibers: 1, dst_vch: Channel(Array(S)).new)
+
+      spawn_with_close 1, src_vch, src_ech do
+        ary = nil
+        receive_loop src_vch, src_ech, @dst_ech do |o|
+          ary ||= Array(S).new batch_size
+          ary << o
+          if ary.size >= batch_size
+            @dst_vch.send ary
+            ary = nil
+          end
+        end
+      end
+    end
+  end
+
 
   class Run(S) < Base(S)
     def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> _)
