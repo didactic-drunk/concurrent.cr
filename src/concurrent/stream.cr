@@ -27,10 +27,10 @@ module Concurrent::Stream
             begin
               yield msg
             rescue ex
-              handle_error ex, dst_ech
+              handle_error ex, src_vch, src_ech, dst_ech
             end
           when ex = src_ech.receive
-            handle_error ex, dst_ech
+            handle_error ex, src_vch, src_ech, dst_ech
           end
         rescue Channel::ClosedError
           break
@@ -54,17 +54,28 @@ module Concurrent::Stream
         begin
           yield msg
         rescue ex
-          handle_error ex, dst_ech
+          handle_error ex, src_vch, src_ech, dst_ech
         end
       end
 
       while ex = src_ech.receive?
-        handle_error ex, dst_ech
+        handle_error ex, src_vch, src_ech, dst_ech
       end
     end
 
-    def handle_error(ex, dst_ech)
-      dst_ech ? dst_ech.send(ex) : raise(ex)
+    def handle_error(ex, src_vch, src_ech, dst_ech)
+      if dst_ech
+        begin
+          dst_ech.send(ex)
+        rescue Channel::ClosedError
+          # BUG: possibly signal error elsewhere
+          src_vch.close
+          src_ech.close
+          raise ex
+        end
+      else
+        raise(ex)
+      end
     end
   end
 
