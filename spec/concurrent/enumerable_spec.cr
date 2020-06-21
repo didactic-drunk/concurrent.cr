@@ -89,15 +89,18 @@ describe Enumerable do
 
   it "parallel batch" do
     WatchDog.open 1 do
-      src = (1..10).to_a
+      src = [1, nil, 2, nil, nil, 3, nil, 4, nil]
       sum = 0
       batch_size = 2
+      batch_count = 0
       src.parallel.batch(batch_size).serial.each do |ary|
         ary.size.should eq batch_size
         sum += ary.sum
+        batch_count += 1
       end
 
-      sum.should eq 55
+      batch_count.should eq 2
+      sum.should eq 10
     end
   end
 

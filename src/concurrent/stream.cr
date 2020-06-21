@@ -152,7 +152,7 @@ module Concurrent::Stream
     def batch(size : Int32)
       raise ArgumentError.new("Size must be positive") if size <= 0
 
-      output = Batch(T).new @dst_vch, @dst_ech, batch_size: size
+      output = Batch(T, typeof(@dst_vch.receive.not_nil!)).new @dst_vch, @dst_ech, batch_size: size
       output
     end
 
@@ -232,24 +232,25 @@ module Concurrent::Stream
     end
   end
 
-  class Batch(S) < Base(Array(S))
+  class Batch(S, D) < Base(Array(D))
     def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, batch_size : Int32)
-      super(fibers: 1, dst_vch: Channel(Array(S)).new)
+      super(fibers: 1, dst_vch: Channel(Array(D)).new)
 
       spawn_with_close 1, src_vch, src_ech do
         ary = nil
         receive_loop src_vch, src_ech, @dst_ech do |o|
-          ary ||= Array(S).new batch_size
-          ary << o
-          if ary.size >= batch_size
-            @dst_vch.send ary
-            ary = nil
+          if o
+            ary ||= Array(D).new batch_size
+            ary << o
+            if ary.size >= batch_size
+              @dst_vch.send ary
+              ary = nil
+            end
           end
         end
       end
     end
   end
-
 
   class Run(S) < Base(S)
     def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> _)
