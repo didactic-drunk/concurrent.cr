@@ -58,9 +58,13 @@ module Concurrent::Stream
         end
       end
 
+      src_vch_closed
+
       while ex = src_ech.receive?
         handle_error ex, src_vch, src_ech, dst_ech
       end
+
+      src_ech_closed
     end
 
     def handle_error(ex, src_vch, src_ech, dst_ech)
@@ -76,6 +80,12 @@ module Concurrent::Stream
       else
         raise(ex)
       end
+    end
+
+    protected def src_vch_closed
+    end
+
+    protected def src_ech_closed
     end
   end
 
@@ -233,21 +243,31 @@ module Concurrent::Stream
   end
 
   class Batch(S, D) < Base(Array(D))
+    @batch : Array(D)?
+
     def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, batch_size : Int32)
       super(fibers: 1, dst_vch: Channel(Array(D)).new)
 
       spawn_with_close 1, src_vch, src_ech do
-        ary = nil
         receive_loop src_vch, src_ech, @dst_ech do |o|
           if o
-            ary ||= Array(D).new batch_size
+            ary = @batch ||= Array(D).new batch_size
             ary << o
             if ary.size >= batch_size
+              @batch = nil
               @dst_vch.send ary
-              ary = nil
             end
           end
         end
+      end
+    end
+
+    protected def src_vch_closed
+      super
+
+      if ary = @batch
+        @dst_vch.send ary unless ary.empty?
+        @batch = nil
       end
     end
   end

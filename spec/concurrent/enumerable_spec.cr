@@ -104,6 +104,23 @@ describe Enumerable do
     end
   end
 
+  it "partial batch" do
+    WatchDog.open 1 do
+      src = [1]
+      sum = 0
+      batch_size = 200
+      batch_count = 0
+      src.parallel.batch(batch_size).serial.each do |ary|
+        ary.size.should eq 1
+        sum += ary.sum
+        batch_count += 1
+      end
+
+      batch_count.should eq 1
+      sum.should eq 1
+    end
+  end
+
   pending "many more methods" do
   end
 end
