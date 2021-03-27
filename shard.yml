@@ -1,9 +1,7 @@
+---
 name: concurrent
-version: 0.1.0
-
+version: 0.1.2
 authors:
-  - Didactic Drunk <1479616+didactic-drunk@users.noreply.github.com>
-
+- Didactic Drunk <1479616+didactic-drunk@users.noreply.github.com>
 crystal: ">= 0.34.0"
-
 license: MIT
