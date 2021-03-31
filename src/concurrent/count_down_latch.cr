@@ -63,7 +63,7 @@ class Concurrent::CountDownLatch
   def count_up(n = 1) : Nil
     prev = @count.add n
     if prev <= 0
-      raise_ex Error::CountExceeded.new("#{Fiber.current} Latch previously released.  Use count_add before all counts reach 0. wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}")
+      raise_ex Error::CountExceeded.new("#{Fiber.current} Latch previously released.  Use count_add before count reaches 0. wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}")
     end
   end
 

@@ -47,6 +47,28 @@ describe Concurrent::CountDownLatch do
     end
   end
 
+  it "Counts up" do
+    latch = Concurrent::CountDownLatch.new 1
+    WatchDog.open 2 do
+      latch.count_up 5
+      latch.count.should eq 6
+      6.times do
+        latch.count_down
+      end
+      latch.wait
+    end
+  end
+
+  it "Can't count_up after release" do
+    latch = Concurrent::CountDownLatch.new 1
+    WatchDog.open 2 do
+      latch.count_down
+      expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+        latch.count_up
+      end
+    end
+  end
+
   describe "Raises when counting down too many times" do
     it "In #count_down and #wait" do
       latch = Concurrent::CountDownLatch.new 1
