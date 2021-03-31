@@ -60,6 +60,13 @@ class Concurrent::CountDownLatch
     end
   end
 
+  def count_up(n = 1) : Nil
+    prev = @count.add n
+    if prev <= 0
+      raise_ex Error::CountExceeded.new("#{Fiber.current} Latch previously released.  Use count_add before all counts reach 0. wait_count=#{wait_count} saved_wait_count=#{@saved_wait_count}")
+    end
+  end
+
   # Must be set exactly once and only if not supplied to #initialize
   def wait_count=(wait_count : Int32) : Int32
     raise ArgumentError.new("wait_count <= 0") if wait_count <= 0
