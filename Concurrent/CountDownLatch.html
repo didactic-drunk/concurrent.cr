@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Crystal Docs 0.36.1">
+<meta name="crystal_docs.project_version" content="HEAD">
+<meta name="crystal_docs.project_name" content="concurrent">
+
+
+
+<link href="../css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../js/doc.js"></script>
+
+  <meta name="repository-name" content="concurrent">
+  <title>Concurrent::CountDownLatch - concurrent HEAD</title>
+  <script type="text/javascript">
+    CrystalDocs.base_path = "../";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="../index.html">
+          concurrent
+        </a>
+      </h1>
+
+      <span class="project-version">
+        HEAD
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="concurrent/Array" data-name="array(t)">
+      <a href="../Array.html">Array</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Channel" data-name="channel(t)">
+      <a href="../Channel.html">Channel</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="concurrent/Concurrent" data-name="concurrent">
+      <a href="../Concurrent.html">Concurrent</a>
+      
+        <ul>
+  
+  <li class="parent open current" data-id="concurrent/Concurrent/CountDownLatch" data-name="concurrent::countdownlatch">
+      <a href="../Concurrent/CountDownLatch.html">CountDownLatch</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CountDownLatch/Error" data-name="concurrent::countdownlatch::error">
+      <a href="../Concurrent/CountDownLatch/Error.html">Error</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/CountDownLatch/Error/CountExceeded" data-name="concurrent::countdownlatch::error::countexceeded">
+      <a href="../Concurrent/CountDownLatch/Error/CountExceeded.html">CountExceeded</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/CountDownLatch/Error/Internal" data-name="concurrent::countdownlatch::error::internal">
+      <a href="../Concurrent/CountDownLatch/Error/Internal.html">Internal</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CyclicBarrier" data-name="concurrent::cyclicbarrier">
+      <a href="../Concurrent/CyclicBarrier.html">CyclicBarrier</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CyclicBarrier/Error" data-name="concurrent::cyclicbarrier::error">
+      <a href="../Concurrent/CyclicBarrier/Error.html">Error</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/CyclicBarrier/Error/Broken" data-name="concurrent::cyclicbarrier::error::broken">
+      <a href="../Concurrent/CyclicBarrier/Error/Broken.html">Broken</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Semaphore" data-name="concurrent::semaphore">
+      <a href="../Concurrent/Semaphore.html">Semaphore</a>
+      
+    </li>
+  
+  <li class="parent " data-id="concurrent/Concurrent/Stream" data-name="concurrent::stream">
+      <a href="../Concurrent/Stream.html">Stream</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base(t)">
+      <a href="../Concurrent/Stream/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Batch" data-name="concurrent::stream::batch(s, d)">
+      <a href="../Concurrent/Stream/Batch.html">Batch</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d)">
+      <a href="../Concurrent/Stream/Map.html">Map</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Run" data-name="concurrent::stream::run(s)">
+      <a href="../Concurrent/Stream/Run.html">Run</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Select" data-name="concurrent::stream::select(s)">
+      <a href="../Concurrent/Stream/Select.html">Select</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Serial" data-name="concurrent::stream::serial(t)">
+      <a href="../Concurrent/Stream/Serial.html">Serial</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Source" data-name="concurrent::stream::source(t)">
+      <a href="../Concurrent/Stream/Source.html">Source</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Tee" data-name="concurrent::stream::tee(s)">
+      <a href="../Concurrent/Stream/Tee.html">Tee</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Wait" data-name="concurrent::wait">
+      <a href="../Concurrent/Wait.html">Wait</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Enumerable" data-name="enumerable(t)">
+      <a href="../Enumerable.html">Enumerable</a>
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1 class="type-name">
+
+  <span class="kind">class</span> Concurrent::CountDownLatch
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Concurrent/CountDownLatch.html">Concurrent::CountDownLatch</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>Allows fibers to wait until a series of operations performed in other fibers complete.</p>
+
+<p>This class has additional capabilities not found in java or other implementations:</p>
+
+<ul><li><code><a href="../Concurrent/CountDownLatch.html#wait_count:Int32-instance-method">#wait_count</a></code> may be set at initialization or if not provided to initialize() any time after (only once between resets).</li><li>Reset is allowed after the latch is released.  The object may be reused but is not a cyclic barrier.</li></ul>
+
+<p>A single atomic counter is used.
+This implementation is 30-40% faster than using a Mutex or Channel::Buffered on Crystal 0.29.0-dev and likely to be faster still when
+channels are thread safe.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>
+    <a id="defined-in" class="anchor" href="#defined-in">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Defined in:
+  </h2>
+  
+    
+      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L10" target="_blank">
+        concurrent/count_down_latch.cr
+      </a>
+    
+    <br/>
+  
+
+
+
+
+
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new(saved_wait_count=0)-class-method" class="signature"><strong>.new</strong>(saved_wait_count = <span class="n">0</span>)</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#count-instance-method" class="signature"><strong>#count</strong></a>
+        
+          <div class="summary"><p>Current count.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#count_down:Nil-instance-method" class="signature"><strong>#count_down</strong> : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#count_up(n=1):Nil-instance-method" class="signature"><strong>#count_up</strong>(n = <span class="n">1</span>) : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#error(ex:Exception):Nil-instance-method" class="signature"><strong>#error</strong>(ex : Exception) : Nil</a>
+        
+          <div class="summary"><p>Use instead of count_down.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reset-instance-method" class="signature"><strong>#reset</strong></a>
+        
+          <div class="summary"><p>Only call reset after latch is released or after initialize.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#wait:self-instance-method" class="signature"><strong>#wait</strong> : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Wait until count_down has been called wait_count times.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#wait_count:Int32-instance-method" class="signature"><strong>#wait_count</strong> : Int32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#wait_count=(wait_count:Int32):Int32-instance-method" class="signature"><strong>#wait_count=</strong>(wait_count : Int32) : Int32</a>
+        
+          <div class="summary"><p>Must be set exactly once and only if not supplied to #initialize</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+</div>
+
+
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(saved_wait_count=0)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(saved_wait_count = <span class="n">0</span>)
+
+        <a class="method-permalink" href="#new(saved_wait_count=0)-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L29" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+
+
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="count-instance-method">
+      <div class="signature">
+        
+        def <strong>count</strong>
+
+        <a class="method-permalink" href="#count-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Current count.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L35" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="count_down:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>count_down</strong> : Nil
+
+        <a class="method-permalink" href="#count_down:Nil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L51" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="count_up(n=1):Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>count_up</strong>(n = <span class="n">1</span>) : Nil
+
+        <a class="method-permalink" href="#count_up(n=1):Nil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L63" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="error(ex:Exception):Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>error</strong>(ex : Exception) : Nil
+
+        <a class="method-permalink" href="#error(ex:Exception):Nil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Use instead of count_down.
+Stores the first error and raises it when #wait is called.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L93" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reset-instance-method">
+      <div class="signature">
+        
+        def <strong>reset</strong>
+
+        <a class="method-permalink" href="#reset-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Only call reset after latch is released or after initialize.
+Undefined behavior if called between use of count_down and release.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L106" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="wait:self-instance-method">
+      <div class="signature">
+        
+        def <strong>wait</strong> : <span class="k">self</span>
+
+        <a class="method-permalink" href="#wait:self-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Wait until count_down has been called wait_count times.</p>
+
+<p><span class="flag orange">TODO</span>  timeout</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L41" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="wait_count:Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>wait_count</strong> : Int32
+
+        <a class="method-permalink" href="#wait_count:Int32-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L21" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="wait_count=(wait_count:Int32):Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>wait_count=</strong>(wait_count : Int32) : Int32
+
+        <a class="method-permalink" href="#wait_count=(wait_count:Int32):Int32-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Must be set exactly once and only if not supplied to #initialize</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5131941f4cb4ffe0a8313e8fcdd5da5003ccdf71/src/concurrent/count_down_latch.cr#L71" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>
