@@ -1,3 +1,4 @@
+require "log"
 require "./wait"
 
 # Influenced by [Ruby parallel](https://github.com/grosser/parallel)
@@ -15,8 +16,20 @@ require "./wait"
 # * #tee { } - Runs block in a fiber pool passing the original message to the next Stream.
 # * #serial - returns an Enumerable collecting results from a parallel Stream.
 #
+# ## Final results and error handling
+# All method chains should end with #wait, #serial, or #to_a all of which gather errors and end parallel processing.
+# You may omit calling #wait when using #run for background tasks where completion is not guaranteed.
+# When used in this fashion make sure to catch all exceptions in the run block or the internal exception channel may fill.
+# causing the entire pipeline to stop.
+#
+# ## Error handling
+# Use #wait, #serial, or #to_a receive errors or rescue within any blocks.
+# Better handling is a WIP.
+#
 @[Experimental]
 module Concurrent::Stream
+  Log = ::Log.for self
+
   # :nodoc:
   module Receive
     protected def receive_loop(src_vch, src_ech, dst_ech) : Nil
