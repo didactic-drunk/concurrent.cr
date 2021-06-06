@@ -49,6 +49,19 @@ require "concurrent/enumerable"
                  | Spawns fiber pool
 ```
 
+
+### Batches
+```crystal
+(1..50).parallel.map { |n|
+  # Parallel processing in a fiber pool
+  Choose::A::ORM.new(id: n)
+}.batch(10).run { |array_of_records|
+  # Run 10 Inserts inside a transaction for faster db writes
+  # Real applications should choose ~~~100-100000 depending on the database, schema, data & hardware
+  ORM.transaction { array_of_records.each &.save! }
+}.wait
+```
+
 ### Stream processing from a `Channel` (experimental).
 ```crystal
 require "concurrent/channel"
