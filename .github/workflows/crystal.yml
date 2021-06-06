@@ -1,18 +1,25 @@
 name: Crystal CI
 
-on: [push]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    
+
     container:
       image: crystallang/crystal
-    
+
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Install dependencies
       run: shards install
     - name: Run tests
-      run: crystal spec
+      run: crystal spec -Dpreview_mt --order random --error-on-warnings
+    - name: Run build
+      run: shards build -Dpreview_mt
+    - name: Run format
+      run: crystal tool format --check
