@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Crystal Docs 0.36.1">
+<meta name="crystal_docs.project_version" content="master">
+<meta name="crystal_docs.project_name" content="concurrent">
+
+
+
+<link href="../../css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../../js/doc.js"></script>
+
+  <meta name="repository-name" content="concurrent">
+  <title>Concurrent::Stream::Base(T) - concurrent master</title>
+  <script type="text/javascript">
+    CrystalDocs.base_path = "../../";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="../../index.html">
+          concurrent
+        </a>
+      </h1>
+
+      <span class="project-version">
+        master
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="concurrent/Array" data-name="array(t)">
+      <a href="../../Array.html">Array</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Channel" data-name="channel(t)">
+      <a href="../../Channel.html">Channel</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="concurrent/Concurrent" data-name="concurrent">
+      <a href="../../Concurrent.html">Concurrent</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CountDownLatch" data-name="concurrent::countdownlatch">
+      <a href="../../Concurrent/CountDownLatch.html">CountDownLatch</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CountDownLatch/Error" data-name="concurrent::countdownlatch::error">
+      <a href="../../Concurrent/CountDownLatch/Error.html">Error</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/CountDownLatch/Error/CountExceeded" data-name="concurrent::countdownlatch::error::countexceeded">
+      <a href="../../Concurrent/CountDownLatch/Error/CountExceeded.html">CountExceeded</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/CountDownLatch/Error/Internal" data-name="concurrent::countdownlatch::error::internal">
+      <a href="../../Concurrent/CountDownLatch/Error/Internal.html">Internal</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CyclicBarrier" data-name="concurrent::cyclicbarrier">
+      <a href="../../Concurrent/CyclicBarrier.html">CyclicBarrier</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CyclicBarrier/Error" data-name="concurrent::cyclicbarrier::error">
+      <a href="../../Concurrent/CyclicBarrier/Error.html">Error</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/CyclicBarrier/Error/Broken" data-name="concurrent::cyclicbarrier::error::broken">
+      <a href="../../Concurrent/CyclicBarrier/Error/Broken.html">Broken</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Semaphore" data-name="concurrent::semaphore">
+      <a href="../../Concurrent/Semaphore.html">Semaphore</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="concurrent/Concurrent/Stream" data-name="concurrent::stream">
+      <a href="../../Concurrent/Stream.html">Stream</a>
+      
+        <ul>
+  
+  <li class=" current" data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base(t)">
+      <a href="../../Concurrent/Stream/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Batch" data-name="concurrent::stream::batch(s, d)">
+      <a href="../../Concurrent/Stream/Batch.html">Batch</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d)">
+      <a href="../../Concurrent/Stream/Map.html">Map</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Run" data-name="concurrent::stream::run(s)">
+      <a href="../../Concurrent/Stream/Run.html">Run</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Select" data-name="concurrent::stream::select(s)">
+      <a href="../../Concurrent/Stream/Select.html">Select</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Serial" data-name="concurrent::stream::serial(t)">
+      <a href="../../Concurrent/Stream/Serial.html">Serial</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Source" data-name="concurrent::stream::source(t)">
+      <a href="../../Concurrent/Stream/Source.html">Source</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Tee" data-name="concurrent::stream::tee(s)">
+      <a href="../../Concurrent/Stream/Tee.html">Tee</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Wait" data-name="concurrent::wait">
+      <a href="../../Concurrent/Wait.html">Wait</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Enumerable" data-name="enumerable(t)">
+      <a href="../../Enumerable.html">Enumerable</a>
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1 class="type-name">
+
+  <span class="kind">abstract class</span> Concurrent::Stream::Base(T)
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base(T)</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p><code><a href="../../Concurrent/Stream/Base.html#map(*,fibers:Int32?=nil,&block:T-%3EU)forallU-instance-method">#map</a></code>, <code><a href="../../Concurrent/Stream/Base.html#select(*,fibers:Int32?=nil,&block:T-%3EBool)-instance-method">#select</a></code>, <code><a href="../../Concurrent/Stream/Base.html#run(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method">#run</a></code> and <code><a href="../../Concurrent/Stream/Base.html#tee(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method">#tee</a></code> run in a fiber pool.
+<code><a href="../../Concurrent/Stream/Base.html#batch(size:Int32)-instance-method">#batch</a></code> runs in a single fiber.
+All other methods "join" in the calling fiber.</p>
+
+<p>Exceptions are raised in #each when joined.</p>
+
+<p><span class="flag orange">TODO</span>  better error handling.</p>
+
+
+
+
+
+  <h2>
+    <a id="included-modules" class="anchor" href="#included-modules">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Included Modules
+  </h2>
+  <ul class="other-types-list">
+    
+      <li class="other-type">Concurrent::Stream::Receive</li>
+    
+  </ul>
+
+
+
+
+
+  <h2>
+    <a id="direct-known-subclasses" class="anchor" href="#direct-known-subclasses">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Direct Known Subclasses
+  </h2>
+  <ul class="other-types-list">
+    
+      <li class="other-type"><a href="../../Concurrent/Stream/Batch.html">Concurrent::Stream::Batch(S, D)</a></li>
+    
+      <li class="other-type"><a href="../../Concurrent/Stream/Map.html">Concurrent::Stream::Map(S, D)</a></li>
+    
+      <li class="other-type"><a href="../../Concurrent/Stream/Run.html">Concurrent::Stream::Run(S)</a></li>
+    
+      <li class="other-type"><a href="../../Concurrent/Stream/Select.html">Concurrent::Stream::Select(S)</a></li>
+    
+      <li class="other-type"><a href="../../Concurrent/Stream/Source.html">Concurrent::Stream::Source(T)</a></li>
+    
+      <li class="other-type"><a href="../../Concurrent/Stream/Tee.html">Concurrent::Stream::Tee(S)</a></li>
+    
+  </ul>
+
+
+
+
+
+
+  <h2>
+    <a id="defined-in" class="anchor" href="#defined-in">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Defined in:
+  </h2>
+  
+    
+      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L112" target="_blank">
+        concurrent/stream.cr
+      </a>
+    
+    <br/>
+  
+
+
+
+
+
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new(*,fibers:Int32,dst_vch:Channel(T),dst_ech:Channel(Exception)?=nil)-class-method" class="signature"><strong>.new</strong>(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = <span class="n">nil</span>)</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#batch(size:Int32)-instance-method" class="signature"><strong>#batch</strong>(size : Int32)</a>
+        
+          <div class="summary"><p>Parallel batch.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#close:Nil-instance-method" class="signature"><strong>#close</strong> : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#map(*,fibers:Int32?=nil,&block:T-%3EU)forallU-instance-method" class="signature"><strong>#map</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> U) forall U</a>
+        
+          <div class="summary"><p>Parallel map.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#run(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="signature"><strong>#run</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)</a>
+        
+          <div class="summary"><p>Parallel run.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#select(*,fibers:Int32?=nil,&block:T-%3EBool)-instance-method" class="signature"><strong>#select</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> Bool)</a>
+        
+          <div class="summary"><p>Parallel select.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#serial-instance-method" class="signature"><strong>#serial</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#tee(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="signature"><strong>#tee</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)</a>
+        
+          <div class="summary"><p>Parallel tee.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_a(*args,**options)-instance-method" class="signature"><strong>#to_a</strong>(*args, **options)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_a(*args,**options,&)-instance-method" class="signature"><strong>#to_a</strong>(*args, **options, &)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#wait(*args,**options)-instance-method" class="signature"><strong>#wait</strong>(*args, **options)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#wait(*args,**options,&)-instance-method" class="signature"><strong>#wait</strong>(*args, **options, &)</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+  <h3>Instance methods inherited from module <code>Concurrent::Stream::Receive</code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Receive.html#handle_error(ex,src_vch,src_ech,dst_ech)-instance-method" class="tooltip">
+      <span>handle_error(ex, src_vch, src_ech, dst_ech)</span>
+    handle_error</a>
+    
+  
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+</div>
+
+
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(*,fibers:Int32,dst_vch:Channel(T),dst_ech:Channel(Exception)?=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(*, fibers : Int32, dst_vch : <a href="../../Channel.html">Channel</a>(T), dst_ech : <a href="../../Channel.html">Channel</a>(Exception)? = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new(*,fibers:Int32,dst_vch:Channel(T),dst_ech:Channel(Exception)?=nil)-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L124" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+
+
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="batch(size:Int32)-instance-method">
+      <div class="signature">
+        
+        def <strong>batch</strong>(size : Int32)
+
+        <a class="method-permalink" href="#batch(size:Int32)-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Parallel batch.  Runs in a single fiber.  Multiple fibers would delay further stream processing.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L175" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="close:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>close</strong> : Nil
+
+        <a class="method-permalink" href="#close:Nil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L196" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="map(*,fibers:Int32?=nil,&block:T->U)forallU-instance-method">
+      <div class="signature">
+        
+        def <strong>map</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> U) forall U
+
+        <a class="method-permalink" href="#map(*,fibers:Int32?=nil,&block:T-%3EU)forallU-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Parallel map.  <code>&block</code> is evaluated in a fiber pool.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L163" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="run(*,fibers:Int32?=nil,&block:T->_)-instance-method">
+      <div class="signature">
+        
+        def <strong>run</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)
+
+        <a class="method-permalink" href="#run(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Parallel run.  <code>&block</code> is evaluated in a fiber pool.
+Further processing is not possible except for #wait.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L184" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="select(*,fibers:Int32?=nil,&block:T->Bool)-instance-method">
+      <div class="signature">
+        
+        def <strong>select</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> Bool)
+
+        <a class="method-permalink" href="#select(*,fibers:Int32?=nil,&block:T-%3EBool)-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Parallel select.  <code>&block</code> is evaluated in a fiber pool.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L169" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="serial-instance-method">
+      <div class="signature">
+        
+        def <strong>serial</strong>
+
+        <a class="method-permalink" href="#serial-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L154" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="tee(*,fibers:Int32?=nil,&block:T->_)-instance-method">
+      <div class="signature">
+        
+        def <strong>tee</strong>(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)
+
+        <a class="method-permalink" href="#tee(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Parallel tee.  <code>&block</code> is evaluated in a fiber pool.
+The original message is passed to the next Stream.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L191" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_a(*args,**options)-instance-method">
+      <div class="signature">
+        
+        def <strong>to_a</strong>(*args, **options)
+
+        <a class="method-permalink" href="#to_a(*args,**options)-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L120" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_a(*args,**options,&)-instance-method">
+      <div class="signature">
+        
+        def <strong>to_a</strong>(*args, **options, &)
+
+        <a class="method-permalink" href="#to_a(*args,**options,&)-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L120" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="wait(*args,**options)-instance-method">
+      <div class="signature">
+        
+        def <strong>wait</strong>(*args, **options)
+
+        <a class="method-permalink" href="#wait(*args,**options)-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L122" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="wait(*args,**options,&)-instance-method">
+      <div class="signature">
+        
+        def <strong>wait</strong>(*args, **options, &)
+
+        <a class="method-permalink" href="#wait(*args,**options,&)-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/76008a18af765ce3a0d4e285dd5296352ad55e25/src/concurrent/stream.cr#L122" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>
