@@ -262,23 +262,21 @@ which inspired <a href="https://github.com/didactic-drunk/concurrent.cr">this li
 (<span class="n">1</span>..<span class="n">50</span>).parallel.<span class="k">select</span>(<span class="o">&amp;</span>.even?).map { <span class="o">|</span>n<span class="o">|</span> n <span class="o">+</span> <span class="n">1</span> }.serial.sum
                  <span class="o">^</span>               <span class="o">^</span>                 <span class="o">^</span> <span class="t">Results</span> joined.
                  <span class="o">|</span>               <span class="o">|</span> <span class="t">Spawns</span> separate fiber pool
-                 <span class="o">|</span> <span class="t">Spawns</span> fiber pool
+                 <span class="o">|</span> <span class="t">Spawns</span> fiber pool</code></pre>
 
+<h3><a id="batches" class="anchor" href="#batches">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Batches</h3>
 
-(<span class="n">1</span>..<span class="n">50</span>).parallel.map { <span class="o">|</span>n<span class="o">|</span>
+<pre><code class="language-crystal">(<span class="n">1</span>..<span class="n">50</span>).parallel.map { <span class="o">|</span>n<span class="o">|</span>
   <span class="c"># Parallel processing in a fiber pool</span>
   <span class="t">Choose</span><span class="t">::</span><span class="t">A</span><span class="t">::</span><span class="t">ORM</span>.<span class="k">new</span>(id: n)
-}.batch(<span class="n">10</span>).run { <span class="o">|</span>batch_array<span class="o">|</span>
+}.batch(<span class="n">10</span>).run { <span class="o">|</span>array_of_records<span class="o">|</span>
   <span class="c"># Run 10 Inserts inside a transaction for faster db writes</span>
   <span class="c"># Real applications should choose ~~~100-100000 depending on the database, schema, data &amp; hardware</span>
-  <span class="t">ORM</span>.transaction <span class="k">do</span>
-    batch_array.each <span class="k">do</span> <span class="o">|</span>record<span class="o">|</span>
-      record.save!
-    <span class="k">end</span>
-    <span class="c"># Or</span>
-    batch_array.each <span class="o">&amp;</span>.save!
-  <span class="k">end</span>
-  <span class="t">Or</span>
+  <span class="t">ORM</span>.transaction { array_of_records.each <span class="o">&amp;</span>.save! }
 }.wait</code></pre>
 
 <h3><a id="stream-processing-from-a-channel-experimental." class="anchor" href="#stream-processing-from-a-channel-experimental.">
