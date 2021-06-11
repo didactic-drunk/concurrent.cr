@@ -1,6 +1,7 @@
 # concurrent.cr
-[![Build Status](https://travis-ci.org/didactic-drunk/concurrent.cr.svg?branch=master)](https://travis-ci.org/didactic-drunk/concurrent.cr)
-[![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://didactic-drunk.github.io/concurrent.cr/)
+[![Crystal CI](https://github.com/didactic-drunk/concurrent.cr/actions/workflows/crystal.yml/badge.svg)](https://github.com/didactic-drunk/concurrent.cr/actions/workflows/crystal.yml)
+[![GitHub release](https://img.shields.io/github/release/didactic-drunk/concurrent.cr.svg)](https://github.com/didactic-drunk/concurrent.cr/releases)
+[![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://didactic-drunk.github.io/concurrent.cr/master)
 
 <strike>Modern</strike> <strike>Adequate</strike> <strike>Any</strike> 
 **New opportunities for** concurrency tools in Crystal.  
