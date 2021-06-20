@@ -88,8 +88,8 @@ module Concurrent::Stream
           unhandled_error ex
           src_vch.close
           src_ech.close
-#Log.error(exception: ex) { "ech send failed" }
-#          raise ex
+          # Log.error(exception: ex) { "ech send failed" }
+          #          raise ex
         end
       else
         raise(ex)
@@ -116,7 +116,7 @@ module Concurrent::Stream
       STDERR.puts "unhandled_error #{ex.inspect}"
       ex.inspect_with_backtrace STDERR
       @wait.error ex
-#      @parent.try &.unhandled_error ex
+      #      @parent.try &.unhandled_error ex
     end
   end
 
@@ -263,13 +263,13 @@ module Concurrent::Stream
       spawn_with_close fibers, src_vch, src_ech do
         receive_loop src_vch, src_ech, @dst_ech do |o|
           if sc = @scope
-#with scope.call do
-          mo = block.call o # map
-          @dst_vch.send mo
-#end
+            # with scope.call do
+            mo = block.call o # map
+            @dst_vch.send mo
+            # end
           else
-          mo = block.call o # map
-          @dst_vch.send mo
+            mo = block.call o # map
+            @dst_vch.send mo
           end
         end
       end
