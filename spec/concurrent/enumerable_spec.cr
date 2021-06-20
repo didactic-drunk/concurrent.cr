@@ -104,6 +104,34 @@ describe Enumerable do
     end
   end
 
+  it "parallel batch error 1" do
+    WatchDog.open 1 do
+      src = (1..10).to_a
+      parallel = src.parallel(fibers: 2)
+
+      batch = parallel.batch(3).map do |nums|
+        nums.sum.even? ? raise(TestError.new) : nums
+      end
+
+      expect_raises(TestError) do
+        batch.to_a
+      end
+    end
+  end
+
+  it "parallel batch error 2" do
+    WatchDog.open 1 do
+      src = TestEachFail.new
+      parallel = src.parallel(fibers: 2)
+
+      batch = parallel.batch(3).map { |nums| nums }
+
+      expect_raises(TestError) do
+        batch.to_a
+      end
+    end
+  end
+
   it "partial batch" do
     WatchDog.open 1 do
       src = [1]
@@ -118,6 +146,32 @@ describe Enumerable do
 
       batch_count.should eq 1
       sum.should eq 1
+    end
+  end
+
+  it "flush interval batch" do
+    WatchDog.open 1 do
+      src = Channel(Int32).new
+      batch_size = 200
+      batch_count = 0
+      run = src.parallel.batch(batch_size, flush_interval: 0.05, flush_empty: true).run(fibers: 1) do |ary|
+        ary.size.should eq 0
+        batch_count += 1
+      end
+
+      sleep 0.4
+
+      batch_count.should be >= 5
+      batch_count.should be <= 10
+    end
+  end
+
+  pending "scope" do
+    WatchDog.open 1 do
+      src = [1, 2]
+      sum = src.parallel.scope { TestScope.new }.map { |n| foo n }.serial.sum
+
+      sum.should eq 5
     end
   end
 

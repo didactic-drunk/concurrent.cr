@@ -85,10 +85,11 @@ module Concurrent::Stream
         begin
           dst_ech.send(ex)
         rescue Channel::ClosedError
-          # BUG: possibly signal error elsewhere
+          unhandled_error ex
           src_vch.close
           src_ech.close
-          raise ex
+#Log.error(exception: ex) { "ech send failed" }
+#          raise ex
         end
       else
         raise(ex)
@@ -102,26 +103,42 @@ module Concurrent::Stream
     end
   end
 
+  abstract class Base
+    @wait = Concurrent::Wait.new
+    @parent : Base?
+
+    delegate :wait, to: @wait
+
+    def initialize(*, @parent)
+    end
+
+    def unhandled_error(ex : Exception) : Nil
+      STDERR.puts "unhandled_error #{ex.inspect}"
+      ex.inspect_with_backtrace STDERR
+      @wait.error ex
+#      @parent.try &.unhandled_error ex
+    end
+  end
+
   # `map`, `select`, `run` and `tee` run in a fiber pool.
-  # `batch` runs in a single fiber.
+  # `batch` runs in a single fiber
   # All other methods "join" in the calling fiber.
   #
   # Exceptions are raised in #each when joined.
   #
   # TODO: better error handling.
-  abstract class Base(T)
+  abstract class SendRecv(T, SC) < Base
     include Receive
 
     @dst_vch : Channel(T)
     @dst_ech : Channel(Exception)
 
-    @wait = Concurrent::Wait.new
+    @scope : Proc(SC)?
 
     delegate :to_a, to: serial
 
-    delegate :wait, to: @wait
-
-    def initialize(*, @fibers : Int32, @dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil)
+    def initialize(*, @fibers : Int32, @dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil, parent)
+      super(parent: parent)
       @dst_ech = dst_ech ||= Channel(Exception).new
       @fibers_remaining = Atomic(Int32).new -1
     end
@@ -152,7 +169,7 @@ module Concurrent::Stream
     end
 
     def serial
-      Serial(T).new @dst_vch, @dst_ech
+      Serial(T).new @dst_vch, @dst_ech, parent: self
     end
 
     #    def each(&block : T -> U) forall U
@@ -161,35 +178,43 @@ module Concurrent::Stream
 
     # Parallel map.  `&block` is evaluated in a fiber pool.
     def map(*, fibers : Int32? = nil, &block : T -> U) forall U
-      output = Map(T, U).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      next_scope = nil
+      output = Map(T, U, typeof(next_scope)).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), scope: next_scope, parent: self, &block
       output
     end
 
     # Parallel select.  `&block` is evaluated in a fiber pool.
     def select(*, fibers : Int32? = nil, &block : T -> Bool)
-      output = Select(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output = Select(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), parent: self, &block
       output
     end
 
-    # Parallel batch.  Runs in a single fiber.  Multiple fibers would delay further stream processing.
-    def batch(size : Int32)
+    # Groups results in to chunks up to the given size.
+    # Runs in a single fiber.  Multiple fibers would delay further stream processing.
+    def batch(size : Int32, *, flush_interval : Float? = nil, flush_empty : Bool = false)
       raise ArgumentError.new("Size must be positive") if size <= 0
 
-      output = Batch(T, typeof(@dst_vch.receive.not_nil!)).new @dst_vch, @dst_ech, batch_size: size
+      output = Batch(T, typeof(@dst_vch.receive.not_nil!)).new @dst_vch, @dst_ech, batch_size: size, parent: self, flush_interval: flush_interval, flush_empty: flush_empty
       output
     end
 
     # Parallel run.  `&block` is evaluated in a fiber pool.
     # Further processing is not possible except for #wait.
     def run(*, fibers : Int32? = nil, &block : T -> _)
-      output = Run(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output = Run(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), parent: self, &block
       output
     end
 
     # Parallel tee.  `&block` is evaluated in a fiber pool.
     # The original message is passed to the next Stream.
     def tee(*, fibers : Int32? = nil, &block : T -> _)
-      output = Tee(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), &block
+      output = Tee(T).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), parent: self, &block
+      output
+    end
+
+    # Further processing is evaluated within the scope of the returned object.
+    def scope(&block : -> U) forall U
+      output = Scope(T, U).new @dst_vch, @dst_ech, fibers: @fibers, &block
       output
     end
 
@@ -208,11 +233,12 @@ module Concurrent::Stream
     # end
   end
 
-  class Serial(T)
+  class Serial(T) < Base
     include ::Enumerable(T)
     include Receive
 
-    def initialize(@src_vch : Channel(T), @src_ech : Channel(Exception))
+    def initialize(@src_vch : Channel(T), @src_ech : Channel(Exception), parent)
+      super(parent: parent)
     end
 
     def each
@@ -223,29 +249,36 @@ module Concurrent::Stream
   end
 
   # Input from an Enumerable or Channel.
-  class Source(T) < Base(T)
+  class Source(T) < SendRecv(T, Nil)
     def initialize(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = nil)
-      super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech)
+      super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech, parent: nil)
       set_waiting_fibers 0
     end
   end
 
-  class Map(S, D) < Base(D)
-    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> D)
-      super(fibers: fibers, dst_vch: Channel(D).new)
+  class Map(S, D, SC) < SendRecv(D, SC)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, @scope, parent, &block : S -> D)
+      super(fibers: fibers, dst_vch: Channel(D).new, parent: parent)
 
       spawn_with_close fibers, src_vch, src_ech do
         receive_loop src_vch, src_ech, @dst_ech do |o|
+          if sc = @scope
+#with scope.call do
           mo = block.call o # map
           @dst_vch.send mo
+#end
+          else
+          mo = block.call o # map
+          @dst_vch.send mo
+          end
         end
       end
     end
   end
 
-  class Select(S) < Base(S)
-    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> Bool)
-      super(fibers: fibers, dst_vch: Channel(S).new)
+  class Select(S) < SendRecv(S, Nil)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, parent, &block : S -> Bool)
+      super(fibers: fibers, dst_vch: Channel(S).new, parent: parent)
 
       spawn_with_close fibers, src_vch, src_ech do
         receive_loop src_vch, src_ech, @dst_ech do |o|
@@ -255,22 +288,54 @@ module Concurrent::Stream
     end
   end
 
-  class Batch(S, D) < Base(Array(D))
-    @batch : Array(D)?
+  class Batch(S, D) < SendRecv(Array(D), Nil)
+    @batch : Array(D)
+    @batch_size : Int32
+    @mutex = Mutex.new
 
-    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, batch_size : Int32)
-      super(fibers: 1, dst_vch: Channel(Array(D)).new)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, @batch_size : Int32, parent, flush_interval, flush_empty : Bool)
+      super(fibers: 1, dst_vch: Channel(Array(D)).new, parent: parent)
+
+      @batch = Array(D).new @batch_size
 
       spawn_with_close 1, src_vch, src_ech do
         receive_loop src_vch, src_ech, @dst_ech do |o|
           if o
-            ary = @batch ||= Array(D).new batch_size
-            ary << o
-            if ary.size >= batch_size
-              @batch = nil
-              @dst_vch.send ary
-            end
+            append_obj o
           end
+        end
+      end
+
+      if flush_interval
+        spawn do
+          loop do
+            sleep flush_interval
+            break unless flush_at_interval(flush_empty)
+          end
+        end
+      end
+    end
+
+    private def flush_at_interval(flush_empty : Bool) : Bool
+      @mutex.synchronize do
+        ary = @batch
+        return true if ary.empty? && !flush_empty
+        @batch = Array(D).new @batch_size
+        @dst_vch.send ary
+      end
+
+      true
+    rescue Channel::ClosedError
+      false
+    end
+
+    private def append_obj(o) : Nil
+      @mutex.synchronize do
+        ary = @batch
+        ary << o
+        if ary.size >= @batch_size
+          @batch = Array(D).new @batch_size
+          @dst_vch.send ary
         end
       end
     end
@@ -278,19 +343,20 @@ module Concurrent::Stream
     protected def src_vch_closed
       super
 
-      if ary = @batch
+      @mutex.synchronize do
+        ary = @batch
         @dst_vch.send ary unless ary.empty?
-        @batch = nil
+        @batch = Array(D).new 0
       end
     end
   end
 
-  class Run(S) < Base(S)
-    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> _)
-      dst_vch = Channel(S).new.tap { |ch| ch.close }
+  class Run(S) < SendRecv(S, Nil)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, parent, &block : S -> _)
+      dst_vch = Channel(S).new.tap &.close
       # todo: leave channel open if error handler provided
-      dst_ech = Channel(Exception).new.tap { |ch| ch.close }
-      super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech)
+      dst_ech = Channel(Exception).new.tap &.close
+      super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech, parent: parent)
 
       spawn_with_close fibers, src_vch, src_ech do
         receive_loop src_vch, src_ech, @dst_ech do |o|
@@ -300,9 +366,9 @@ module Concurrent::Stream
     end
   end
 
-  class Tee(S) < Base(S)
-    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> _)
-      super(fibers: fibers, dst_vch: Channel(S).new)
+  class Tee(S) < SendRecv(S, Nil)
+    def initialize(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, parent, &block : S -> _)
+      super(fibers: fibers, dst_vch: Channel(S).new, parent: parent)
 
       spawn_with_close fibers, src_vch, src_ech do
         receive_loop src_vch, src_ech, @dst_ech do |o|
