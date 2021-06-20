@@ -131,7 +131,7 @@
       
         <ul>
   
-  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base(t)">
+  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base">
       <a href="../../Concurrent/Stream/Base.html">Base</a>
       
     </li>
@@ -141,7 +141,7 @@
       
     </li>
   
-  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d)">
+  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d, sc)">
       <a href="../../Concurrent/Stream/Map.html">Map</a>
       
     </li>
@@ -153,6 +153,11 @@
   
   <li class=" " data-id="concurrent/Concurrent/Stream/Select" data-name="concurrent::stream::select(s)">
       <a href="../../Concurrent/Stream/Select.html">Select</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/SendRecv" data-name="concurrent::stream::sendrecv(t, sc)">
+      <a href="../../Concurrent/Stream/SendRecv.html">SendRecv</a>
       
     </li>
   
@@ -205,7 +210,7 @@
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Concurrent/Stream/Tee.html">Concurrent::Stream::Tee(S)</a></li><li class="superclass"><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base(S)</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Concurrent/Stream/Tee.html">Concurrent::Stream::Tee(S)</a></li><li class="superclass"><a href="../../Concurrent/Stream/SendRecv.html">Concurrent::Stream::SendRecv(S, Nil)</a></li><li class="superclass"><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
@@ -233,7 +238,7 @@
   </h2>
   
     
-      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/stream.cr#L303" target="_blank">
+      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/stream.cr#L369" target="_blank">
         concurrent/stream.cr
       </a>
     
@@ -255,7 +260,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,&block:S-%3E_)-class-method" class="signature"><strong>.new</strong>(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, &block : S -> _)</a>
+        <a href="#new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,parent,&block:S-%3E_)-class-method" class="signature"><strong>.new</strong>(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, parent, &block : S -> _)</a>
         
       </li>
     
@@ -273,63 +278,63 @@
   
     
 
-  <h3>Instance methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base(S)</a></code></h3>
+  <h3>Instance methods inherited from class <code><a href="../../Concurrent/Stream/SendRecv.html">Concurrent::Stream::SendRecv(S, Nil)</a></code></h3>
   
   
-    <a href="../../Concurrent/Stream/Base.html#batch(size:Int32)-instance-method" class="tooltip">
-      <span>batch(size : Int32)</span>
+    <a href="../../Concurrent/Stream/SendRecv.html#batch(size:Int32,*,flush_interval:Float?=nil,flush_empty:Bool=false)-instance-method" class="tooltip">
+      <span>batch(size : Int32, *, flush_interval : Float? = <span class="n">nil</span>, flush_empty : Bool = <span class="n">false</span>)</span>
     batch</a>, 
     
   
-    <a href="../../Concurrent/Stream/Base.html#close:Nil-instance-method" class="tooltip">
+    <a href="../../Concurrent/Stream/SendRecv.html#close:Nil-instance-method" class="tooltip">
       <span>close : Nil</span>
     close</a>, 
     
   
-    <a href="../../Concurrent/Stream/Base.html#map(*,fibers:Int32?=nil,&block:T-%3EU)forallU-instance-method" class="tooltip">
+    <a href="../../Concurrent/Stream/SendRecv.html#map(*,fibers:Int32?=nil,&block:T-%3EU)forallU-instance-method" class="tooltip">
       <span>map(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> U) forall U</span>
     map</a>, 
     
   
-    <a href="../../Concurrent/Stream/Base.html#run(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="tooltip">
+    <a href="../../Concurrent/Stream/SendRecv.html#run(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="tooltip">
       <span>run(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)</span>
     run</a>, 
     
   
-    <a href="../../Concurrent/Stream/Base.html#select(*,fibers:Int32?=nil,&block:T-%3EBool)-instance-method" class="tooltip">
+    <a href="../../Concurrent/Stream/SendRecv.html#scope(&block:-%3EU)forallU-instance-method" class="tooltip">
+      <span>scope(&block :  -> U) forall U</span>
+    scope</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#select(*,fibers:Int32?=nil,&block:T-%3EBool)-instance-method" class="tooltip">
       <span>select(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> Bool)</span>
     select</a>, 
     
   
-    <a href="../../Concurrent/Stream/Base.html#serial-instance-method" class="tooltip">
+    <a href="../../Concurrent/Stream/SendRecv.html#serial-instance-method" class="tooltip">
       <span>serial</span>
     serial</a>, 
     
   
-    <a href="../../Concurrent/Stream/Base.html#tee(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="tooltip">
+    <a href="../../Concurrent/Stream/SendRecv.html#tee(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="tooltip">
       <span>tee(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)</span>
     tee</a>, 
     
   
-    <a href="../../Concurrent/Stream/Base.html#to_a(*args,**options)-instance-method" class="tooltip">
+    <a href="../../Concurrent/Stream/SendRecv.html#to_a(*args,**options)-instance-method" class="tooltip">
       <span>to_a(*args, **options)<br/>to_a(*args, **options, &)</span>
-    to_a</a>, 
-    
-  
-    <a href="../../Concurrent/Stream/Base.html#wait(*args,**options)-instance-method" class="tooltip">
-      <span>wait(*args, **options)<br/>wait(*args, **options, &)</span>
-    wait</a>
+    to_a</a>
     
   
 
 
     
 
-  <h3>Constructor methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base(S)</a></code></h3>
+  <h3>Constructor methods inherited from class <code><a href="../../Concurrent/Stream/SendRecv.html">Concurrent::Stream::SendRecv(S, Nil)</a></code></h3>
   
   
-    <a href="../../Concurrent/Stream/Base.html#new(*,fibers:Int32,dst_vch:Channel(T),dst_ech:Channel(Exception)?=nil)-class-method" class="tooltip">
-      <span>new(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = <span class="n">nil</span>)</span>
+    <a href="../../Concurrent/Stream/SendRecv.html#new(*,fibers:Int32,dst_vch:Channel(T),dst_ech:Channel(Exception)?=nil,parent)-class-method" class="tooltip">
+      <span>new(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = <span class="n">nil</span>, parent)</span>
     new</a>
     
   
@@ -352,6 +357,39 @@
 
 
     
+
+
+    
+
+
+  
+    
+
+  <h3>Instance methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Base.html#unhandled_error(ex:Exception):Nil-instance-method" class="tooltip">
+      <span>unhandled_error(ex : Exception) : Nil</span>
+    unhandled_error</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/Base.html#wait(*args,**options)-instance-method" class="tooltip">
+      <span>wait(*args, **options)<br/>wait(*args, **options, &)</span>
+    wait</a>
+    
+  
+
+
+    
+
+  <h3>Constructor methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Base.html#new(*,parent)-class-method" class="tooltip">
+      <span>new(*, parent)</span>
+    new</a>
+    
+  
 
 
     
@@ -390,18 +428,18 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,&block:S->_)-class-method">
+    <div class="entry-detail" id="new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,parent,&block:S->_)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(src_vch : <a href="../../Channel.html">Channel</a>(S), src_ech : <a href="../../Channel.html">Channel</a>(Exception), *, fibers : Int32, &block : S -> _)
+        def self.<strong>new</strong>(src_vch : <a href="../../Channel.html">Channel</a>(S), src_ech : <a href="../../Channel.html">Channel</a>(Exception), *, fibers : Int32, parent, &block : S -> _)
 
-        <a class="method-permalink" href="#new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,&block:S-%3E_)-class-method">#</a>
+        <a class="method-permalink" href="#new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,parent,&block:S-%3E_)-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/stream.cr#L304" target="_blank">View source</a>]
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/stream.cr#L370" target="_blank">View source</a>]
         
       </div>
     </div>

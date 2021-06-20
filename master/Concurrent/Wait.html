@@ -131,7 +131,7 @@
       
         <ul>
   
-  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base(t)">
+  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base">
       <a href="../Concurrent/Stream/Base.html">Base</a>
       
     </li>
@@ -141,7 +141,7 @@
       
     </li>
   
-  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d)">
+  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d, sc)">
       <a href="../Concurrent/Stream/Map.html">Map</a>
       
     </li>
@@ -153,6 +153,11 @@
   
   <li class=" " data-id="concurrent/Concurrent/Stream/Select" data-name="concurrent::stream::select(s)">
       <a href="../Concurrent/Stream/Select.html">Select</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/SendRecv" data-name="concurrent::stream::sendrecv(t, sc)">
+      <a href="../Concurrent/Stream/SendRecv.html">SendRecv</a>
       
     </li>
   
@@ -244,7 +249,7 @@
   </h2>
   
     
-      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/wait.cr#L2" target="_blank">
+      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/wait.cr#L2" target="_blank">
         concurrent/wait.cr
       </a>
     
@@ -287,12 +292,17 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#done-instance-method" class="signature"><strong>#done</strong></a>
+        <a href="#done:Nil-instance-method" class="signature"><strong>#done</strong> : Nil</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#wait-instance-method" class="signature"><strong>#wait</strong></a>
+        <a href="#error(ex:Exception):Nil-instance-method" class="signature"><strong>#error</strong>(ex : Exception) : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#wait:Nil-instance-method" class="signature"><strong>#wait</strong> : Nil</a>
         
       </li>
     
@@ -357,7 +367,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/wait.cr#L6" target="_blank">View source</a>]
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/wait.cr#L2" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -376,34 +386,50 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="done-instance-method">
+    <div class="entry-detail" id="done:Nil-instance-method">
       <div class="signature">
         
-        def <strong>done</strong>
+        def <strong>done</strong> : Nil
 
-        <a class="method-permalink" href="#done-instance-method">#</a>
+        <a class="method-permalink" href="#done:Nil-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/wait.cr#L13" target="_blank">View source</a>]
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/wait.cr#L14" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="wait-instance-method">
+    <div class="entry-detail" id="error(ex:Exception):Nil-instance-method">
       <div class="signature">
         
-        def <strong>wait</strong>
+        def <strong>error</strong>(ex : Exception) : Nil
 
-        <a class="method-permalink" href="#wait-instance-method">#</a>
+        <a class="method-permalink" href="#error(ex:Exception):Nil-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/wait.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/wait.cr#L18" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="wait:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>wait</strong> : Nil
+
+        <a class="method-permalink" href="#wait:Nil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/wait.cr#L7" target="_blank">View source</a>]
         
       </div>
     </div>

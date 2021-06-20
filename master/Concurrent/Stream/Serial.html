@@ -131,7 +131,7 @@
       
         <ul>
   
-  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base(t)">
+  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base">
       <a href="../../Concurrent/Stream/Base.html">Base</a>
       
     </li>
@@ -141,7 +141,7 @@
       
     </li>
   
-  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d)">
+  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d, sc)">
       <a href="../../Concurrent/Stream/Map.html">Map</a>
       
     </li>
@@ -153,6 +153,11 @@
   
   <li class=" " data-id="concurrent/Concurrent/Stream/Select" data-name="concurrent::stream::select(s)">
       <a href="../../Concurrent/Stream/Select.html">Select</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/SendRecv" data-name="concurrent::stream::sendrecv(t, sc)">
+      <a href="../../Concurrent/Stream/SendRecv.html">SendRecv</a>
       
     </li>
   
@@ -205,7 +210,7 @@
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Concurrent/Stream/Serial.html">Concurrent::Stream::Serial(T)</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Concurrent/Stream/Serial.html">Concurrent::Stream::Serial(T)</a></li><li class="superclass"><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
@@ -249,7 +254,7 @@
   </h2>
   
     
-      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/stream.cr#L211" target="_blank">
+      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/stream.cr#L236" target="_blank">
         concurrent/stream.cr
       </a>
     
@@ -271,7 +276,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new(src_vch:Channel(T),src_ech:Channel(Exception))-class-method" class="signature"><strong>.new</strong>(src_vch : Channel(T), src_ech : Channel(Exception))</a>
+        <a href="#new(src_vch:Channel(T),src_ech:Channel(Exception),parent)-class-method" class="signature"><strong>.new</strong>(src_vch : Channel(T), src_ech : Channel(Exception), parent)</a>
         
       </li>
     
@@ -346,6 +351,39 @@
   
     
 
+  <h3>Instance methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Base.html#unhandled_error(ex:Exception):Nil-instance-method" class="tooltip">
+      <span>unhandled_error(ex : Exception) : Nil</span>
+    unhandled_error</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/Base.html#wait(*args,**options)-instance-method" class="tooltip">
+      <span>wait(*args, **options)<br/>wait(*args, **options, &)</span>
+    wait</a>
+    
+  
+
+
+    
+
+  <h3>Constructor methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Base.html#new(*,parent)-class-method" class="tooltip">
+      <span>new(*, parent)</span>
+    new</a>
+    
+  
+
+
+    
+
+
+  
+    
+
 
     
 
@@ -376,18 +414,18 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(src_vch:Channel(T),src_ech:Channel(Exception))-class-method">
+    <div class="entry-detail" id="new(src_vch:Channel(T),src_ech:Channel(Exception),parent)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(src_vch : <a href="../../Channel.html">Channel</a>(T), src_ech : <a href="../../Channel.html">Channel</a>(Exception))
+        def self.<strong>new</strong>(src_vch : <a href="../../Channel.html">Channel</a>(T), src_ech : <a href="../../Channel.html">Channel</a>(Exception), parent)
 
-        <a class="method-permalink" href="#new(src_vch:Channel(T),src_ech:Channel(Exception))-class-method">#</a>
+        <a class="method-permalink" href="#new(src_vch:Channel(T),src_ech:Channel(Exception),parent)-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/stream.cr#L215" target="_blank">View source</a>]
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/stream.cr#L240" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -426,7 +464,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/6e4ccd4ff0c84e841d1883476415282db4a83f7d/src/concurrent/stream.cr#L218" target="_blank">View source</a>]
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/25add6860db7524d6dfba3d7f82d8ea8f4f09502/src/concurrent/stream.cr#L244" target="_blank">View source</a>]
         
       </div>
     </div>
