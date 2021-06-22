@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Crystal Docs 0.36.1">
+<meta name="crystal_docs.project_version" content="main">
+<meta name="crystal_docs.project_name" content="concurrent">
+
+
+
+<link href="../../css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../../js/doc.js"></script>
+
+  <meta name="repository-name" content="concurrent">
+  <title>Concurrent::Stream::Tee(S) - concurrent main</title>
+  <script type="text/javascript">
+    CrystalDocs.base_path = "../../";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="../../index.html">
+          concurrent
+        </a>
+      </h1>
+
+      <span class="project-version">
+        main
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="concurrent/Array" data-name="array(t)">
+      <a href="../../Array.html">Array</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Channel" data-name="channel(t)">
+      <a href="../../Channel.html">Channel</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="concurrent/Concurrent" data-name="concurrent">
+      <a href="../../Concurrent.html">Concurrent</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CountDownLatch" data-name="concurrent::countdownlatch">
+      <a href="../../Concurrent/CountDownLatch.html">CountDownLatch</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CountDownLatch/Error" data-name="concurrent::countdownlatch::error">
+      <a href="../../Concurrent/CountDownLatch/Error.html">Error</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/CountDownLatch/Error/CountExceeded" data-name="concurrent::countdownlatch::error::countexceeded">
+      <a href="../../Concurrent/CountDownLatch/Error/CountExceeded.html">CountExceeded</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/CountDownLatch/Error/Internal" data-name="concurrent::countdownlatch::error::internal">
+      <a href="../../Concurrent/CountDownLatch/Error/Internal.html">Internal</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CyclicBarrier" data-name="concurrent::cyclicbarrier">
+      <a href="../../Concurrent/CyclicBarrier.html">CyclicBarrier</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="concurrent/Concurrent/CyclicBarrier/Error" data-name="concurrent::cyclicbarrier::error">
+      <a href="../../Concurrent/CyclicBarrier/Error.html">Error</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/CyclicBarrier/Error/Broken" data-name="concurrent::cyclicbarrier::error::broken">
+      <a href="../../Concurrent/CyclicBarrier/Error/Broken.html">Broken</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Semaphore" data-name="concurrent::semaphore">
+      <a href="../../Concurrent/Semaphore.html">Semaphore</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="concurrent/Concurrent/Stream" data-name="concurrent::stream">
+      <a href="../../Concurrent/Stream.html">Stream</a>
+      
+        <ul>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Base" data-name="concurrent::stream::base">
+      <a href="../../Concurrent/Stream/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Batch" data-name="concurrent::stream::batch(s, d)">
+      <a href="../../Concurrent/Stream/Batch.html">Batch</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Map" data-name="concurrent::stream::map(s, d, sc)">
+      <a href="../../Concurrent/Stream/Map.html">Map</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Run" data-name="concurrent::stream::run(s)">
+      <a href="../../Concurrent/Stream/Run.html">Run</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Select" data-name="concurrent::stream::select(s)">
+      <a href="../../Concurrent/Stream/Select.html">Select</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/SendRecv" data-name="concurrent::stream::sendrecv(t, sc)">
+      <a href="../../Concurrent/Stream/SendRecv.html">SendRecv</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Serial" data-name="concurrent::stream::serial(t)">
+      <a href="../../Concurrent/Stream/Serial.html">Serial</a>
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Stream/Source" data-name="concurrent::stream::source(t)">
+      <a href="../../Concurrent/Stream/Source.html">Source</a>
+      
+    </li>
+  
+  <li class=" current" data-id="concurrent/Concurrent/Stream/Tee" data-name="concurrent::stream::tee(s)">
+      <a href="../../Concurrent/Stream/Tee.html">Tee</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Concurrent/Wait" data-name="concurrent::wait">
+      <a href="../../Concurrent/Wait.html">Wait</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="concurrent/Enumerable" data-name="enumerable(t)">
+      <a href="../../Enumerable.html">Enumerable</a>
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1 class="type-name">
+
+  <span class="kind">class</span> Concurrent::Stream::Tee(S)
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Concurrent/Stream/Tee.html">Concurrent::Stream::Tee(S)</a></li><li class="superclass"><a href="../../Concurrent/Stream/SendRecv.html">Concurrent::Stream::SendRecv(S, Nil)</a></li><li class="superclass"><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>
+    <a id="defined-in" class="anchor" href="#defined-in">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Defined in:
+  </h2>
+  
+    
+      <a href="https://github.com/didactic-drunk/concurrent.cr/blob/5c96b87eff69afa4fb9cf2ef20781bbfb1b27f87/src/concurrent/stream.cr#L369" target="_blank">
+        concurrent/stream.cr
+      </a>
+    
+    <br/>
+  
+
+
+
+
+
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,parent,&block:S-%3E_)-class-method" class="signature"><strong>.new</strong>(src_vch : Channel(S), src_ech : Channel(Exception), *, fibers : Int32, parent, &block : S -> _)</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+  <h3>Instance methods inherited from class <code><a href="../../Concurrent/Stream/SendRecv.html">Concurrent::Stream::SendRecv(S, Nil)</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#batch(size:Int32,*,flush_interval:Float?=nil,flush_empty:Bool=false)-instance-method" class="tooltip">
+      <span>batch(size : Int32, *, flush_interval : Float? = <span class="n">nil</span>, flush_empty : Bool = <span class="n">false</span>)</span>
+    batch</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#close:Nil-instance-method" class="tooltip">
+      <span>close : Nil</span>
+    close</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#map(*,fibers:Int32?=nil,&block:T-%3EU)forallU-instance-method" class="tooltip">
+      <span>map(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> U) forall U</span>
+    map</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#run(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="tooltip">
+      <span>run(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)</span>
+    run</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#scope(&block:-%3EU)forallU-instance-method" class="tooltip">
+      <span>scope(&block :  -> U) forall U</span>
+    scope</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#select(*,fibers:Int32?=nil,&block:T-%3EBool)-instance-method" class="tooltip">
+      <span>select(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> Bool)</span>
+    select</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#serial-instance-method" class="tooltip">
+      <span>serial</span>
+    serial</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#tee(*,fibers:Int32?=nil,&block:T-%3E_)-instance-method" class="tooltip">
+      <span>tee(*, fibers : Int32? = <span class="n">nil</span>, &block : T -> _)</span>
+    tee</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#to_a(*args,**options)-instance-method" class="tooltip">
+      <span>to_a(*args, **options)<br/>to_a(*args, **options, &)</span>
+    to_a</a>
+    
+  
+
+
+    
+
+  <h3>Constructor methods inherited from class <code><a href="../../Concurrent/Stream/SendRecv.html">Concurrent::Stream::SendRecv(S, Nil)</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/SendRecv.html#new(*,fibers:Int32,dst_vch:Channel(T),dst_ech:Channel(Exception)?=nil,parent)-class-method" class="tooltip">
+      <span>new(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel(Exception)? = <span class="n">nil</span>, parent)</span>
+    new</a>
+    
+  
+
+
+    
+
+
+  
+    
+
+  <h3>Instance methods inherited from module <code>Concurrent::Stream::Receive</code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Receive.html#handle_error(ex,src_vch,src_ech,dst_ech)-instance-method" class="tooltip">
+      <span>handle_error(ex, src_vch, src_ech, dst_ech)</span>
+    handle_error</a>
+    
+  
+
+
+    
+
+
+    
+
+
+  
+    
+
+  <h3>Instance methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Base.html#unhandled_error(ex:Exception):Nil-instance-method" class="tooltip">
+      <span>unhandled_error(ex : Exception) : Nil</span>
+    unhandled_error</a>, 
+    
+  
+    <a href="../../Concurrent/Stream/Base.html#wait(*args,**options)-instance-method" class="tooltip">
+      <span>wait(*args, **options)<br/>wait(*args, **options, &)</span>
+    wait</a>
+    
+  
+
+
+    
+
+  <h3>Constructor methods inherited from class <code><a href="../../Concurrent/Stream/Base.html">Concurrent::Stream::Base</a></code></h3>
+  
+  
+    <a href="../../Concurrent/Stream/Base.html#new(*,parent)-class-method" class="tooltip">
+      <span>new(*, parent)</span>
+    new</a>
+    
+  
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+</div>
+
+
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,parent,&block:S->_)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(src_vch : <a href="../../Channel.html">Channel</a>(S), src_ech : <a href="../../Channel.html">Channel</a>(Exception), *, fibers : Int32, parent, &block : S -> _)
+
+        <a class="method-permalink" href="#new(src_vch:Channel(S),src_ech:Channel(Exception),*,fibers:Int32,parent,&block:S-%3E_)-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/didactic-drunk/concurrent.cr/blob/5c96b87eff69afa4fb9cf2ef20781bbfb1b27f87/src/concurrent/stream.cr#L370" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+
+
+
+
+
+</div>
+
+</body>
+</html>
