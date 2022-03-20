@@ -28,7 +28,7 @@ class Concurrent::CountDownLatch
 
   def initialize(@saved_wait_count = 0)
     @wait_count = @saved_wait_count
-    @count.set (@wait_count == 0 ? Int32::MAX : @wait_count)
+    @count.set(@wait_count == 0 ? Int32::MAX : @wait_count)
   end
 
   # Current count.
@@ -108,7 +108,7 @@ class Concurrent::CountDownLatch
     raise Error::Internal.new "unknown state #{cur_count}" unless cur_count == 0 || cur_count == @saved_wait_count || cur_count == Int32::MAX
     @queue = Channel(Nil).new(1)
     @wait_count = @saved_wait_count
-    @count.set (@wait_count == 0 ? Int32::MAX : @wait_count)
+    @count.set(@wait_count == 0 ? Int32::MAX : @wait_count)
     self
   end
 

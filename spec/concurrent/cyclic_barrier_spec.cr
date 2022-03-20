@@ -33,7 +33,7 @@ private def test_barrier(barrier1, barrier2, fiber_count)
   finished1.@queue.not_nil!.empty?.should be_true
   finished2.@queue.not_nil!.empty?.should be_true
 
-  barrier1_passed.get.should eq (fiber_count - 1)
+  barrier1_passed.get.should eq(fiber_count - 1)
   barrier2_passed.get.should eq 0
 
   barrier2.wait
@@ -43,8 +43,8 @@ private def test_barrier(barrier1, barrier2, fiber_count)
   finished1.@queue.not_nil!.empty?.should be_true
   finished2.@queue.not_nil!.empty?.should be_true
 
-  barrier1_passed.get.should eq (fiber_count - 1)
-  barrier2_passed.get.should eq (fiber_count - 1)
+  barrier1_passed.get.should eq(fiber_count - 1)
+  barrier2_passed.get.should eq(fiber_count - 1)
 end
 
 fiber_count = 2000
