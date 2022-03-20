@@ -1,6 +1,12 @@
 require "../spec_helper"
 require "../../src/concurrent/enumerable"
 
+private class TestScope < Exception
+  def foo(bar)
+    bar + 1
+  end
+end
+
 private class TestError < Exception
 end
 
@@ -42,18 +48,35 @@ describe Enumerable do
     end
   end
 
-  it "parallel map error in each" do
+  it "parallel map error in src each" do
     WatchDog.open 1 do
       src = TestEachFail.new
       parallel = src.parallel(fibers: 2)
 
-      map = parallel.map do |num|
-        num.even? ? raise(TestError.new) : num
-      end
+      map = parallel.map { |num| num }
 
       expect_raises(TestError) do
         map.serial.each { |num| }
       end
+    end
+  end
+
+  it "parallel map error handling" do
+    WatchDog.open 1 do
+      src = (1..10).to_a
+
+      map = src.parallel(fibers: 2).map do |num|
+        num.even? ? raise(TestError.new) : num
+      end
+
+      error_count = Atomic(Int32).new 0
+      continuing = map.errors do |ex|
+        sleep 0.001
+        error_count.add 1
+      end
+
+      continuing.to_a.size.should eq 5
+      error_count.get.should eq 5
     end
   end
 
@@ -87,6 +110,38 @@ describe Enumerable do
     end
   end
 
+  it "parallel run error in map" do
+    WatchDog.open 1 do
+      src = (1..10).to_a
+      parallel = src.parallel(fibers: 2)
+
+      map = parallel.map do |num|
+        num.even? ? raise(TestError.new) : num
+      end
+
+      run = map.run { |num| num }
+
+      expect_raises(TestError) do
+        run.wait
+      end
+    end
+  end
+
+  it "parallel run error in run" do
+    WatchDog.open 1 do
+      src = (1..10).to_a
+      parallel = src.parallel(fibers: 2)
+
+      run = parallel.run do |num|
+        num.even? ? raise(TestError.new) : num
+      end
+
+      expect_raises(TestError) do
+        run.wait
+      end
+    end
+  end
+
   it "parallel batch" do
     WatchDog.open 1 do
       src = [1, nil, 2, nil, nil, 3, nil, 4, nil]
@@ -104,7 +159,7 @@ describe Enumerable do
     end
   end
 
-  it "parallel batch error 1" do
+  it "parallel batch error" do
     WatchDog.open 1 do
       src = (1..10).to_a
       parallel = src.parallel(fibers: 2)
@@ -119,7 +174,7 @@ describe Enumerable do
     end
   end
 
-  it "parallel batch error 2" do
+  it "parallel batch error in src each" do
     WatchDog.open 1 do
       src = TestEachFail.new
       parallel = src.parallel(fibers: 2)

@@ -100,6 +100,24 @@ ch.close
 run.wait
 ```
 
+### Stream error handling
+```crystal
+ary = (1..10).to_a.parallel.select { |i|
+  raise "select error" if i == 2
+  true
+}.parallel.map { |i|
+  raise "map error" if i.even?
+  i.to_s
+# All errors in prior blocks handled here
+}.errors { |ex, obj|
+  puts "#{obj} #{ex}"
+}.map { |s|
+  s.to_i
+}.to_a
+
+p ary => [1, 3, 5, 7]
+```
+
 ### CountDownLatch
 ```crystal
 require "concurrent/count_down_latch"
