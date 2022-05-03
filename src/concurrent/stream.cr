@@ -13,14 +13,14 @@ require "./wait"
 # * #select { } - Same as Enumerable#select but runs in a fiber pool.
 # * #batch(size) { } - Groups results in to chunks up to the given size.
 # * #flatten() - TODO
-# * #run { } - Runs block in a fiber pool.  Further processing is not possible except for #wait.
+# * #run { } - Runs block in a fiber pool.  Further processing is not possible except for #wait or #detach.
 # * #tee { } - Runs block in a fiber pool passing the original message to the next Stream.
 # * #errors { } - Runs accumulated errors through block in a fiber pool
 # * #serial - returns an Enumerable collecting results from a parallel Stream.
 #
 # ## Final results and error handling
 # All method chains should end with #wait, #serial, or #to_a all of which gather errors and end parallel processing.
-# You may omit calling #wait when using #run for background tasks where completion is not guaranteed.
+# You may #detach instead of #wait when using #run for background tasks where completion is not guaranteed.
 # When used in this fashion make sure to catch all exceptions in the run block or the internal exception channel may fill.
 # causing the entire pipeline to stop.
 #
@@ -73,33 +73,6 @@ module Concurrent::Stream
       fibers_remaining_sub
     end
 
-    protected def receive_loop_both_channels(src_vch, src_ech, dst_ech = nil) : Nil
-      loop do
-        begin
-          select
-          when msg = src_vch.receive
-            begin
-              yield msg
-            rescue ex
-              tup = {ex, msg}
-              handle_error tup, src_vch, src_ech, dst_ech
-            end
-          when tup = src_ech.receive
-            handle_error tup, src_vch, src_ech, dst_ech
-          end
-        rescue Channel::ClosedError
-          break
-        end
-      end
-
-      receive_loop_v_channel(src_vch, src_ech, dst_ech) do |msg|
-        yield msg
-      end
-      receive_loop_e_channel(src_vch, src_ech) do |tup|
-        handle_error tup, src_vch, src_ech, dst_ech
-      end
-    end
-
     protected def receive_loop_v_channel(src_vch, src_ech, dst_ech = nil) : Nil
       loop do
         msg = begin
@@ -115,32 +88,20 @@ module Concurrent::Stream
           handle_error tup, src_vch, src_ech, dst_ech
         end
       end
-    ensure
-      src_vch_closed
     end
 
     protected def receive_loop_e_channel(src_vch, src_ech) : Nil
       while msg = src_ech.receive?
         yield msg
       end
-    ensure
-      src_ech_closed
     end
 
     protected def handle_error(tup, src_vch, src_ech, dst_ech)
       if dst_ech
         begin
           dst_ech.send(tup)
-        rescue Channel::ClosedError
-          begin
-            #            unhandled_error tup
-            #         rescue Channel::ClosedError # Ignore.  Channel shutdown because of other error
-            #          ensure
-            src_vch.close
-            #            src_ech.close
-end
-          # Log.error(exception: ex) { "ech send failed" }
-          #          raise ex
+        rescue Channel::ClosedError # Ignore, closed elsewhere
+          src_vch.close
         end
       else
         raise(tup[0])
@@ -149,21 +110,31 @@ end
 
     # Callback
     protected def src_vch_closed
+      @dst_vch.close
+      @dst_ech.close
+      pass_through_parent_wait
     end
 
-    # Callback
-    protected def src_ech_closed
+    protected def pass_through_parent_wait
+      if par = @parent
+        par.@wait.wait
+      end
+    rescue ex
+      @wait.error ex
+    else
+      @wait.done
     end
   end
 
   module ErrorHandling(E)
     @error_fibers_remaining = Atomic(Int32).new 1
 
-    protected abstract def error_handler(ex : Exception, obj : E) : Nil
+    protected abstract def handle_ancestor_error(ex : Exception, obj : E) : Nil
+    protected abstract def ancestor_errors_close : Nil
 
     protected def error_fibers_remaining_sub : Bool
       if @error_fibers_remaining.sub(1) == 1
-        close
+        ancestor_errors_close
         true
       else
         false
@@ -173,14 +144,15 @@ end
     protected def receive_ancestors_errors : Nil
       close_block = ->{ error_fibers_remaining_sub }
 
-      self.errors_attached = true # error handlers are incapable of producing errors
-      par = self.parent
-      while par
-        break unless receive_ancestor_errors(par.not_nil!, close_block)
-        par = par.try &.parent
+      begin
+        self.errors_attached = true # error handlers are incapable of producing errors
+        par = self
+        while par = par.try &.parent
+          break unless receive_ancestor_errors(par, close_block)
+        end
+      ensure
+        close_block.call
       end
-    ensure
-      close_block.try &.call
     end
 
     # Spawns new Fiber recursively until reaches already handled ancestor
@@ -199,6 +171,7 @@ end
           error_handler_loop par
         end
       end
+
       true
     end
 
@@ -206,7 +179,7 @@ end
       while tup = par.dst_ech.receive?
         ex = tup[0]
         obj = tup[1].as(E)
-        error_handler ex, obj
+        handle_ancestor_error ex, obj
       end
     end
   end
@@ -217,19 +190,37 @@ end
 
     @fibers : Int32
     # Not used with Source
-    # All others spawn_with_close(fibers) subs 1
-    @fibers_remaining = Atomic(Int32).new 1
+    # spawn_with_close(fibers) subs 1
+    # stream_next= subs 1
+    @fibers_remaining = Atomic(Int32).new 2
 
+    # current + ancestor streams
     @wait = Concurrent::Wait.new
     protected getter parent : Base?
+    protected getter stream_next : Base?
+
+    delegate wait, to: @wait
+
+    @closed = false
+
+    # :nodoc;
+    abstract def start : Nil
 
     def initialize(*, @fibers, @parent)
     end
 
+    # Closes self + all ancestor value sending channels.
+    #
+    # Only use to:
+    # * Close the source to stop sending messages. Example: Stopping new messages from entering a queue
+    # * Close further parts of the pipeline for messages that are safe to lose.  Example: cron/periodic job that **reliably** handles unprocessed messages. (Closes faster, but messages are lost)
     def close : Nil
+      return if @closed
+      @closed = true
 
-    ensure
-      @wait.done
+      @src_vch.close
+
+      @parent.try &.close
     end
 
     protected def unhandled_error(tup) : Nil
@@ -243,6 +234,13 @@ end
     protected def child_attached!
       raise Error::Misuse.new if child_attached?
       self.child_attached = true
+    end
+
+    protected def stream_next=(stream)
+      @stream_next = stream
+      start
+      fibers_remaining_sub
+      stream
     end
 
     alias NilBlock = -> Nil
@@ -268,7 +266,14 @@ end
 
     # Last fiber closes channel
     protected def fibers_remaining_sub : Nil
-      close if @fibers_remaining.sub(1) == 1
+      r = @fibers_remaining.sub(1)
+      if r > 1
+        # NOOP
+      elsif r == 1
+        src_vch_closed
+      else
+        raise "impossible condition fibers_remaining <= 0 #{@fibers_remaining}"
+      end
     end
   end
 
@@ -297,18 +302,18 @@ end
 
     def serial
       child_attached!
-      Serial(V, E).new @dst_vch, @dst_ech, parent: self
+      output = Serial(V, E).new @dst_vch, @dst_ech, parent: self
+      self.stream_next = output
+      output.start
+      output
     end
-
-    #    def each(&block : T -> U) forall U
-    #     serial.each &block
-    #  end
 
     # Parallel map.  `&block` is evaluated in a fiber pool.
     def map(*, fibers : Int32? = nil, &block : V -> U) forall U
       child_attached!
       next_scope = nil
       output = Map(V, U, E, typeof(next_scope)).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), scope: next_scope, parent: self, block: block
+      self.stream_next = output
       output
     end
 
@@ -316,6 +321,7 @@ end
     def select(*, fibers : Int32? = nil, &block : V -> Bool)
       child_attached!
       output = Select(V, E).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), parent: self, block: block
+      self.stream_next = output
       output
     end
 
@@ -325,23 +331,33 @@ end
       child_attached!
       raise ArgumentError.new("Size must be positive") if size <= 0
 
+      flush_interval = case flush_interval
+                       in Number    ; flush_interval.try &.seconds
+                       in Time::Span; flush_interval
+                       in Nil       ; nil
+                       end
+
       output = Batch(V, typeof(@dst_vch.receive.not_nil!), E).new @dst_vch, @dst_ech, batch_size: size, parent: self, flush_interval: flush_interval, flush_empty: flush_empty
+      self.stream_next = output
       output
     end
 
     # Parallel run.  `&block` is evaluated in a fiber pool.
     # Further processing is not possible except for #wait.
-    def run(*, fibers : Int32? = nil, &block : V -> _)
+    def run(*, fibers : Int32? = nil, &block : V -> Nil)
       child_attached!
       output = Run(V, E).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), parent: self, block: block
+      self.stream_next = output
+      output.start
       output
     end
 
     # Parallel tee.  `&block` is evaluated in a fiber pool.
     # The original message is passed to the next Stream.
-    def tee(*, fibers : Int32? = nil, &block : V -> _)
+    def tee(*, fibers : Int32? = nil, &block : V -> Nil)
       child_attached!
       output = Tee(V, E).new @dst_vch, @dst_ech, fibers: (fibers || @fibers), parent: self, block: block
+      self.stream_next = output
       output
     end
 
@@ -350,6 +366,7 @@ end
       child_attached!
       raise "broken"
       output = Scope(V, U).new @dst_vch, @dst_ech, fibers: @fibers, &block
+      self.stream_next = output
       output
     end
 
@@ -357,16 +374,14 @@ end
       child_attached!
       # dst_vch pass through
       output = Errors(E, V).new @dst_vch, fibers: (fibers || @fibers), parent: self, block: block
+      self.stream_next = output
       output
     end
 
-    def close : Nil
-      return if @closed
-      @closed = true
-
-      @dst_vch.close
-      @dst_ech.close
-      super
+    protected def dst_vch_send(msg) : Nil
+      @dst_vch.send msg
+    rescue Channel::ClosedError # Ignore.  Closed, cancelled or closed by error elsewhere
+      @src_vch.close
     end
 
     # TODO: Implement cancel.
@@ -377,8 +392,19 @@ end
   # Input from an Enumerable or Channel.
   class Source(T, E) < SendRecv(T, T, E, Nil)
     def initialize(*, fibers : Int32, dst_vch : Channel(T), dst_ech : Channel({Exception, E})? = nil)
-      @fibers_remaining.set 0
+      # 1 for stream_next
+      @fibers_remaining.set 2
+      @wait.done
+      dst_ech ||= Channel({Exception, E}).new.tap &.close # closed by default: no errors possible
       super(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech, parent: nil)
+    end
+
+    def start : Nil
+    end
+
+    def stream_next=(stream)
+      super stream
+      stream
     end
   end
 
@@ -391,83 +417,128 @@ end
     @errors_fibers_remaining = Atomic(Int32).new 1
     @comb_ech = Channel({Exception, E}).new # All ancestor errors forwarded here
 
-    delegate :wait, to: @wait
-
     def initialize(fibers, parent)
       super(fibers: fibers, parent: parent)
 
       receive_ancestors_errors
     end
 
-    def close : Nil # Called by receive_ancestors_errors.  possibly more
-      @comb_ech.close
-      super
+    protected def src_vch_closed : Nil
+      pass_through_parent_wait
     end
 
     @[Experimental]
     # Likely to be replaced with a Future or async shard later
+    #
+    # yields nil on success
+    # yields Exception on error
     def detach(&block)
-      wait
-      block.call nil
-    rescue ex
-      block.call ex
+      spawn do
+        wait
+        block.call nil
+      rescue ex
+        block.call ex
+      end
     end
 
     @[Experimental]
     # Likely to be replaced with a Future or async shard later
     def detach
-      detach { }
+      detach { |ex| raise(ex) if ex }
     end
   end
 
   class Serial(T, E) < Destination(E)
     include ::Enumerable(T)
 
+    @start_wait = Wait.new
+
     def initialize(@src_vch : Channel(T), @src_ech : Channel({Exception, E}), parent)
       super(fibers: 0, parent: parent)
     end
 
+    # :nodoc:
+    def start : Nil
+      @start_wait.done
+    end
+
     def each
+      @start_wait.wait
+
       receive_loop_both_channels @src_vch, @comb_ech do |msg|
-        #      receive_loop_v_channels @src_vch, @comb_ech do |msg|
         yield msg
       end
 
-      if par = @parent
-        par.@wait.wait
-      end
-
-      @wait.done
+      pass_through_parent_wait
+      @wait.wait # may raise
     end
 
-    protected def error_handler(ex : Exception, obj : E) : Nil
-      tup = {ex, obj}
-      @src_vch.close
-      @comb_ech.send tup
-      #      @wait.error ex
+    protected def src_vch_closed : Nil
+      # Do nothing.  All waiting/closing done in #each
+    end
 
+    protected def ancestor_errors_close : Nil
+      @comb_ech.close
+    end
+
+    protected def handle_ancestor_error(ex : Exception, obj : E) : Nil
+      tup = {ex, obj}
+      @comb_ech.send tup
     rescue Channel::ClosedError # closed by error handling somewhere else
+    end
+
+    protected def handle_error(ex : Exception, obj : E) : Nil
+      @wait.error ex
+      @src_vch.close
+      raise ex
+    end
+
+    # Only used with single fiber
+    protected def receive_loop_both_channels(src_vch, src_ech, dst_ech = nil) : Nil
+      loop do
+        begin
+          select
+          when msg = src_vch.receive
+            begin
+              yield msg
+            rescue ex
+              tup = {ex, msg}
+              handle_error tup, src_vch, src_ech, dst_ech
+            end
+          when tup = src_ech.receive
+            handle_error tup, src_vch, src_ech, dst_ech
+          end
+        rescue Channel::ClosedError
+          break
+        end
+      end
+
+      receive_loop_v_channel(src_vch, src_ech, dst_ech) do |msg|
+        yield msg
+      end
+      receive_loop_e_channel(src_vch, src_ech) do |tup|
+        handle_error tup, src_vch, src_ech, dst_ech
+      end
     end
   end
 
   class Map(S, D, E, SC) < SendRecv(D, D, E | D, SC)
-    def initialize(src_vch : Channel(S), src_ech : Channel({Exception, E}), *, fibers : Int32, @scope, parent, block : S -> D)
+    def initialize(@src_vch : Channel(S), @src_ech : Channel({Exception, E}), *, fibers : Int32, @scope, parent, @block : S -> D)
       super(fibers: fibers, dst_vch: Channel(D).new, parent: parent)
+    end
 
-      spawn_with_close fibers, src_vch, src_ech, name: :map do
-        receive_loop_v_channel src_vch, src_ech, @dst_ech do |o|
+    # :nodoc:
+    def start : Nil
+      spawn_with_close @fibers, @src_vch, @src_ech, name: :map do
+        receive_loop_v_channel @src_vch, @src_ech, @dst_ech do |o|
           if sc = @scope
             # with scope.call do
-            mo = block.call o # map
-            @dst_vch.send mo
+            mo = @block.call o # map
+            dst_vch_send mo
             # end
           else
-            mo = block.call o # map
-            begin
-              @dst_vch.send mo
-            rescue Channel::ClosedError # Ignore.  Closed by error elsewhere
-              src_vch.close
-            end
+            mo = @block.call o # map
+            dst_vch_send mo
           end
         end
       end
@@ -475,17 +546,16 @@ end
   end
 
   class Select(S, E) < SendRecv(S, S, E, Nil)
-    def initialize(src_vch : Channel(S), src_ech : Channel({Exception, E}), *, fibers : Int32, parent, block : S -> Bool)
+    def initialize(@src_vch : Channel(S), @src_ech : Channel({Exception, E}), *, fibers : Int32, parent, @block : S -> Bool)
       super(fibers: fibers, dst_vch: Channel(S).new, parent: parent)
+    end
 
-      spawn_with_close fibers, src_vch, src_ech do
-        receive_loop_v_channel src_vch, src_ech, @dst_ech do |o|
-          if block.call(o) # select
-            begin
-              @dst_vch.send(o)
-            rescue Channel::ClosedError # Ignore.  Closed by error elsewhere
-              src_vch.close
-            end
+    # :nodoc:
+    def start : Nil
+      spawn_with_close @fibers, @src_vch, @src_ech do
+        receive_loop_v_channel @src_vch, @src_ech, @dst_ech do |o|
+          if @block.call(o) # select
+            dst_vch_send(o)
           end
         end
       end
@@ -497,24 +567,27 @@ end
     @batch_size : Int32
     @mutex = Mutex.new
 
-    def initialize(src_vch : Channel(SV), src_ech : Channel({Exception, E}), *, @batch_size : Int32, parent, flush_interval, flush_empty : Bool)
+    def initialize(@src_vch : Channel(SV), @src_ech : Channel({Exception, E}), *, @batch_size : Int32, parent, @flush_interval : Time::Span?, @flush_empty : Bool)
       super(fibers: 1, dst_vch: Channel(Array(DV)).new, parent: parent)
 
       @batch = Array(DV).new @batch_size
+    end
 
-      spawn_with_close 1, src_vch, src_ech do
-        receive_loop_v_channel src_vch, src_ech, @dst_ech do |o|
+    # :nodoc:
+    def start : Nil
+      spawn_with_close 1, @src_vch, @src_ech do
+        receive_loop_v_channel @src_vch, @src_ech, @dst_ech do |o|
           if o
             append_obj o
           end
         end
       end
 
-      if flush_interval
+      if flush_interval = @flush_interval
         spawn do
           loop do
             sleep flush_interval
-            flush_at_interval(flush_empty)
+            flush_at_interval(@flush_empty)
           end
         rescue Channel::ClosedError
         end
@@ -526,7 +599,7 @@ end
         ary = @batch
         return true if ary.empty? && !flush_empty
         @batch = Array(DV).new @batch_size
-        @dst_vch.send ary
+        dst_vch_send ary
       end
     end
 
@@ -536,69 +609,81 @@ end
         ary << o
         if ary.size >= @batch_size
           @batch = Array(DV).new @batch_size
-          begin
-            @dst_vch.send ary
-          rescue Channel::ClosedError # Ignore
-          # BUG: finish
-          #            @src_vch.close
-          end
+          dst_vch_send ary
         end
       end
     end
 
-    protected def src_vch_closed
-      super
-
+    protected def src_vch_closed : Nil
+      # mutex not necessary?
       @mutex.synchronize do
         ary = @batch
-        @dst_vch.send ary unless ary.empty?
-        @batch = Array(DV).new 0
-      rescue Channel::ClosedError
+        unless ary.empty?
+          @dst_vch.send ary
+          @batch = Array(DV).new 0
+        end
+      rescue Channel::ClosedError # Ignore
       end
+
+      super
     end
   end
 
   class Run(S, E) < Destination(E)
-    def initialize(@src_vch : Channel(S), @src_ech : Channel({Exception, E}), *, fibers : Int32, @parent : Base, block : S -> _)
+    def initialize(@src_vch : Channel(S), @src_ech : Channel({Exception, E}), *, fibers : Int32, @parent : Base, @block : S -> Nil)
       super(fibers: fibers, parent: parent)
+      fibers_remaining_sub # No stream_next
+    end
 
-      spawn_with_close fibers, @src_vch, @comb_ech, name: :run do
+    # :nodoc:
+    def start : Nil
+      spawn_with_close @fibers, @src_vch, @comb_ech, name: :run do
         receive_loop_v_channel @src_vch, @src_ech do |o|
           begin
-            block.call o
+            @block.call o
           rescue ex
-            error_handler ex, o
+            handle_ancestor_error ex, o # Not technically an ancestor error, but same action
           end
         end
       end
     end
 
-    protected def error_handler(ex : Exception, obj : E) : Nil
-      @src_vch.close
+    protected def handle_ancestor_error(ex : Exception, obj : E) : Nil
       @wait.error ex
+      @src_vch.close
+    end
+
+    protected def ancestor_errors_close : Nil
+      @comb_ech.close
     end
   end
 
   class Tee(S, E) < SendRecv(S, S, E, Nil)
-    def initialize(src_vch : Channel(S), src_ech : Channel({Exception, E}), *, fibers : Int32, parent, block : S -> _)
+    def initialize(@src_vch : Channel(S), @src_ech : Channel({Exception, E}), *, fibers : Int32, parent, @block : S -> Nil)
       super(fibers: fibers, dst_vch: Channel(S).new, parent: parent)
+    end
 
-      spawn_with_close fibers, src_vch, src_ech do
-        receive_loop_v_channel src_vch, src_ech, @dst_ech do |o|
-          @dst_vch.send o
-          block.call o
+    # :nodoc:
+    def start : Nil
+      spawn_with_close @fibers, @src_vch, @src_ech do
+        receive_loop_v_channel @src_vch, @src_ech, @dst_ech do |o|
+          dst_vch_send o
+          @block.call o
         end
       end
     end
   end
 
   class Scope(S, E, SC) < SendRecv(S, S, E, SC)
-    def initialize(src_vch : Channel(S), src_ech : Channel({Exception, E}), *, fibers : Int32, wait, block : S -> _)
+    def initialize(@src_vch : Channel(S), src_ech : Channel({Exception, E}), *, fibers : Int32, wait, @block : S -> _)
       super(fibers: fibers, dst_vch: Channel(S).new, parent: parent)
+    end
 
-      spawn_with_close fibers, src_vch, src_ech do
-        receive_loop_v_channel src_vch, src_ech, @dst_ech do |o|
-          @dst_vch.send o
+    # :nodoc:
+    def start : Nil
+      spawn_with_close fibers, @src_vch, src_ech do
+        receive_loop_v_channel @src_vch, src_ech, @dst_ech do |o|
+          dst_vch_send o
           # BUG: bypass channels
           #          block.call o
         end
@@ -611,16 +696,25 @@ end
 
     @block : (Exception, B) -> Nil
 
-    def initialize(src_vch : Channel(S), *, fibers : Int32, parent, @block : Exception, B -> _)
+    def initialize(src_vch : Channel(S), *, fibers : Int32, parent, @block : Exception, B -> Nil)
       dech = Channel({Exception, S}).new.tap &.close # Can't produce errors
       # Pass through src_vch
       super(fibers: fibers, dst_vch: src_vch, dst_ech: dech, parent: parent)
 
+      # Need to run this immediately, not in #start.  Otherwise Serial will take up all error channels
       receive_ancestors_errors
     end
 
-    protected def error_handler(ex : Exception, obj : B) : Nil
+    # :nodoc:
+    def start : Nil
+    end
+
+    protected def handle_ancestor_error(ex : Exception, obj : B) : Nil
       @block.call ex, obj
+    end
+
+    protected def ancestor_errors_close : Nil
+      pass_through_parent_wait
     end
   end
 end

@@ -83,7 +83,7 @@ describe Enumerable do
   it "parallel select" do
     WatchDog.open 1 do
       src = (1..10).to_a
-      dst = src.parallel.select(&.even?).select { |n| n > 5 }.to_a
+      dst = src.parallel.select(&.even?).select { |n| sleep 0.0001; n > 5 }.to_a
 
       dst.sort.should eq src.select(&.even?).select { |n| n > 5 }
     end

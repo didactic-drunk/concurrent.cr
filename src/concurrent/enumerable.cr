@@ -1,13 +1,12 @@
 require "./stream"
 
 module ::Enumerable(T)
-  # TODO: better error handling
-  # *
   # See `Concurrent::Stream`
   @[Experimental]
   def parallel(*, fibers : Int32 = System.cpu_count.to_i)
     dst_vch = Channel(T).new
-    Concurrent::Stream::Source(T, T | Symbol).new(fibers: fibers, dst_vch: dst_vch).tap do |parallel|
+    dst_ech = Channel({Exception, T | Symbol}).new
+    Concurrent::Stream::Source(T, T | Symbol).new(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech).tap do |source|
       spawn do
         self.each do |o|
           dst_vch.send o
@@ -15,9 +14,10 @@ module ::Enumerable(T)
       rescue Channel::ClosedError # Ignore.  Closed due to error elsewhere
       rescue ex
         tup = {ex, :enumerable_each}
-        parallel.@dst_ech.send tup
+        source.@dst_ech.send(tup) rescue nil
       ensure
-        parallel.close
+        source.@dst_vch.close
+        source.@dst_ech.close
       end
     end
   end
@@ -27,13 +27,12 @@ module ::Enumerable(T)
 end
 
 class Array(T)
-  # TODO: better error handling
-  # *
   # See `Concurrent::Stream`
   @[Experimental]
   def parallel(*, fibers : Int32 = System.cpu_count.to_i)
     dst_vch = Channel(T).new
-    Concurrent::Stream::Source(T, T | Symbol).new(fibers: fibers, dst_vch: dst_vch).tap do |parallel|
+    dst_ech = Channel({Exception, T | Symbol}).new
+    Concurrent::Stream::Source(T, T | Symbol).new(fibers: fibers, dst_vch: dst_vch, dst_ech: dst_ech).tap do |source|
       spawn do
         self.each do |o|
           dst_vch.send o
@@ -41,9 +40,10 @@ class Array(T)
       rescue Channel::ClosedError # Ignore.  Closed due to error elsewhere
       rescue ex
         tup = {ex, :array_each}
-        parallel.@dst_ech.send tup
+        source.@dst_ech.send(tup) rescue nil
       ensure
-        parallel.close
+        source.@dst_vch.close
+        source.@dst_ech.close
       end
     end
   end
