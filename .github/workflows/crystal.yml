@@ -5,6 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron: "31 2 * * 2"
 
 jobs:
   build:
@@ -16,9 +18,8 @@ jobs:
       matrix:
         stable: [true]
         crystal:
-          - 1.1.0
           - 1.1.1
-          - 1.2.0
+          - 1.4.1
         include:
           - crystal: nightly
             stable: false
