@@ -3,12 +3,6 @@
 [![GitHub release](https://img.shields.io/github/release/didactic-drunk/concurrent.cr.svg)](https://github.com/didactic-drunk/concurrent.cr/releases)
 [![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://didactic-drunk.github.io/concurrent.cr/main)
 
-<strike>Modern</strike> <strike>Adequate</strike> <strike>Any</strike> 
-**New opportunities for** concurrency tools in Crystal.  
-Large <strike>empty lots</strike> spacious directories available to build your dream <strike>home</strike> algorithm!  
-Space is filling up at (24k code bytes / 2 months) 0.004 bytes per second.  Register your PR today!  
-<strike>©️ Real estate marketing association</strike>
-
 Inspired by Erlang, Clojure, Scala, Haskell, F#, C#, Java, and classic concurrency patterns which inspired 
 [Ruby](https://github.com/ruby-concurrency/concurrent-ruby), 
 which inspired [this library](https://github.com/didactic-drunk/concurrent.cr).
@@ -21,8 +15,8 @@ Available classes:
 * [Concurrent::Semaphore](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Semaphore.html)
 
 TODO:
-* [ ] Change Enumerable/Channel in to generic stream processing.
-* [ ] Enumerable/Channel custom error handling.
+* [x] Change Enumerable/Channel in to generic stream processing.
+* [x] Enumerable/Channel custom error handling.
 
 More algorithms are coming.  Contributions welcome.
 
@@ -118,7 +112,7 @@ ary = (1..10).to_a.parallel.select { |i|
 p ary => [1, 3, 5, 7]
 ```
 
-### CountDownLatch
+### Waitgroup/CountDownLatch
 ```crystal
 require "concurrent/count_down_latch"
 
