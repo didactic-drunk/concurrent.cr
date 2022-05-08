@@ -10,7 +10,7 @@ which inspired [this library](https://github.com/didactic-drunk/concurrent.cr).
 Available classes:
 * [Concurrent::Enumerable](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Stream.html)
 * [Concurrent::Channel](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Stream.html)
-* [Concurrent::CountDownLatch](https://didactic-drunk.github.io/concurrent.cr/Concurrent/CountDownLatch.html)
+* [Concurrent::WaitGroup](https://didactic-drunk.github.io/concurrent.cr/Concurrent/WaitGroup.html)
 * [Concurrent::CyclicBarrier](https://didactic-drunk.github.io/concurrent.cr/Concurrent/CyclicBarrier.html)
 * [Concurrent::Semaphore](https://didactic-drunk.github.io/concurrent.cr/Concurrent/Semaphore.html)
 
@@ -114,10 +114,10 @@ p ary => [1, 3, 5, 7]
 
 ### Waitgroup/CountDownLatch
 ```crystal
-require "concurrent/count_down_latch"
+require "concurrent/wait_group"
 
 fiber_count = 10
-latch = Concurrent::CountDownLatch.new
+latch = Concurrent::WaitGroup.new
 10.times do
   spawn do
     # Do work

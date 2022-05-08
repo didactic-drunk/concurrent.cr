@@ -1,4 +1,4 @@
-# Lower resource version of CountDownLatch.  SWMR.
+# Lower resource version of WaitGroup.  SWMR.
 struct Concurrent::Wait
   # TODO: Change to condition variable.
   @ch = Channel(Nil).new

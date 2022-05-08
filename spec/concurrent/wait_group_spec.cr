@@ -1,5 +1,5 @@
 require "../spec_helper"
-require "../../src/concurrent/count_down_latch"
+require "../../src/concurrent/wait_group"
 
 private def test_latch(latch, fiber_count, wait_set = false)
   # Randomly set the count at the beginning or end.
@@ -26,9 +26,9 @@ end
 
 fiber_count = 20
 
-describe Concurrent::CountDownLatch do
+describe Concurrent::WaitGroup do
   it "Counts down from a fixed number" do
-    latch = Concurrent::CountDownLatch.new fiber_count
+    latch = Concurrent::WaitGroup.new fiber_count
     WatchDog.open 2 do
       5.times do
         test_latch latch, fiber_count, false
@@ -38,7 +38,7 @@ describe Concurrent::CountDownLatch do
   end
 
   it "Counts down from a dynamic number" do
-    latch = Concurrent::CountDownLatch.new
+    latch = Concurrent::WaitGroup.new
     WatchDog.open 2 do
       5.times do
         test_latch latch, fiber_count, true
@@ -48,7 +48,7 @@ describe Concurrent::CountDownLatch do
   end
 
   it "Counts up" do
-    latch = Concurrent::CountDownLatch.new 1
+    latch = Concurrent::WaitGroup.new 1
     WatchDog.open 2 do
       latch.count_up 5
       latch.count.should eq 6
@@ -60,10 +60,10 @@ describe Concurrent::CountDownLatch do
   end
 
   it "Can't count_up after release" do
-    latch = Concurrent::CountDownLatch.new 1
+    latch = Concurrent::WaitGroup.new 1
     WatchDog.open 2 do
       latch.count_down
-      expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+      expect_raises(Concurrent::WaitGroup::Error::CountExceeded) do
         latch.count_up
       end
     end
@@ -71,29 +71,29 @@ describe Concurrent::CountDownLatch do
 
   describe "Raises when counting down too many times" do
     it "In #count_down and #wait" do
-      latch = Concurrent::CountDownLatch.new 1
+      latch = Concurrent::WaitGroup.new 1
       WatchDog.open 2 do
         latch.count_down
 
-        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+        expect_raises(Concurrent::WaitGroup::Error::CountExceeded) do
           latch.count_down
         end
-        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+        expect_raises(Concurrent::WaitGroup::Error::CountExceeded) do
           latch.wait
         end
       end
     end
 
     it "In #wait_count= and #wait" do
-      latch = Concurrent::CountDownLatch.new
+      latch = Concurrent::WaitGroup.new
       WatchDog.open 2 do
         latch.count_down
         latch.count_down
 
-        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+        expect_raises(Concurrent::WaitGroup::Error::CountExceeded) do
           latch.wait_count = 1
         end
-        expect_raises(Concurrent::CountDownLatch::Error::CountExceeded) do
+        expect_raises(Concurrent::WaitGroup::Error::CountExceeded) do
           latch.wait
         end
       end
@@ -102,7 +102,7 @@ describe Concurrent::CountDownLatch do
 
   describe "Raises when setting #wait_count= more than once" do
     it "Fixed" do
-      latch = Concurrent::CountDownLatch.new 1
+      latch = Concurrent::WaitGroup.new 1
       WatchDog.open 2 do
         expect_raises(ArgumentError) do
           latch.wait_count = 1
@@ -111,7 +111,7 @@ describe Concurrent::CountDownLatch do
     end
 
     it "Dynamic" do
-      latch = Concurrent::CountDownLatch.new
+      latch = Concurrent::WaitGroup.new
       WatchDog.open 2 do
         latch.wait_count = 1
         expect_raises(ArgumentError) do
